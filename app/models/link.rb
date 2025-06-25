@@ -864,29 +864,6 @@ class Link < ApplicationRecord
     end
   end
 
-  def offer_code_info(code)
-    offer_code_params = {}
-    if code.present?
-      offer_code = find_offer_code(code:)
-      offer_code_error_message = nil
-      if offer_code.nil?
-        offer_code_error_message = "Sorry, the discount code you wish to use is invalid."
-      elsif !offer_code.is_valid_for_purchase?
-        offer_code_error_message = "Sorry, the discount code you wish to use has expired."
-      end
-
-      if offer_code_error_message.present?
-        offer_code_params[:is_valid] = false
-        offer_code_params[:error_message] = offer_code_error_message
-      else
-        offer_code_params[:is_valid] = true
-        offer_code_params[:amount] = offer_code.amount
-        offer_code_params[:is_percent] = offer_code.is_percent?
-      end
-    end
-    offer_code_params
-  end
-
   def find_offer_code(code:)
     offer_codes.alive.find_by_code(code) ||
       user.offer_codes.universal_with_matching_currency(price_currency_type).alive.find_by_code(code)
