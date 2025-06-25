@@ -1062,17 +1062,6 @@ class User < ApplicationRecord
       links.ordered_by_ids(sorted_product_ids)
     end
 
-    def products_sorted_by_average_rating_desc
-      # Consider average rating of the products as 0 for sorting if they have display_product_reviews? set to false
-      # so that when sorted by average rating on the user profile page
-      # they show up *after* all the other products for whom ratings are displayed.
-      sorted_product_ids = links.select(:id, :unique_permalink, :flags).sort_by do |product|
-        average_rating_for_sorting = product.display_product_reviews? ? -product.average_rating : 0
-        [average_rating_for_sorting, product.unique_permalink]
-      end.map(&:id)
-      links.ordered_by_ids(sorted_product_ids)
-    end
-
     def make_affiliate_of_the_matching_approved_affiliate_requests
       return if pre_signup_affiliate_request_processed? || email.blank?
 
