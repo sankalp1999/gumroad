@@ -54,16 +54,6 @@ export type CardProduct = {
 
 export type PurchaseType = "buy_only" | "rent_only" | "buy_and_rent";
 
-export type SpecificAttributes = {
-  audio: boolean;
-  can_enable_rentals: boolean;
-  is_listenable: boolean;
-  is_rentable: boolean;
-  is_streamable: boolean;
-  permalink: string;
-  purchase_type: PurchaseType;
-};
-
 export type AnalyticsData = {
   google_analytics_id: string | null;
   facebook_pixel_id: string | null;
@@ -91,9 +81,7 @@ export const SORT_KEYS = [
   "price_asc",
   "price_desc",
 ] as const;
-export type SortKey = (typeof SORT_KEYS)[number];
 export const PROFILE_SORT_KEYS = ProductSectionSchema.properties.default_product_sort.enum;
-export type ProfileSortKey = (typeof PROFILE_SORT_KEYS)[number];
 
 export const COMMISSION_DEPOSIT_PROPORTION = 0.5;
 

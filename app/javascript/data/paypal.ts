@@ -47,22 +47,6 @@ export const createBillingAgreement = async (billingAgreementTokenId: string): P
 
 type PaypalOrderResponse = { id: string; payer: { email_address: string; address: { country_code: string } } };
 
-export type LineItemInfoForNativePayPalCheckout = {
-  external_id: string;
-  permalink: string;
-  quantity: number;
-  currency_code: CurrencyCode;
-  total_cents: number;
-  price_cents: number;
-  shipping_cents: number;
-  tax_cents: number;
-  exclusive_tax_cents: number;
-  vat_cents: number;
-  exclusive_vat_cents: number;
-  tax_country: string | null;
-  was_recommended: boolean;
-};
-
 export const createBillingAgreementToken = async (data: { shipping: boolean }): Promise<string> => {
   try {
     const response = await request({
