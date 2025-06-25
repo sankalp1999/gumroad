@@ -3732,24 +3732,6 @@ describe Link, :vcr do
     end
   end
 
-  describe ".facebook_share_url" do
-    context "when title is true" do
-      it "generates the facebook share url" do
-        product = create(:product, name: "you & i")
-
-        expect(product.facebook_share_url).to eq "https://www.facebook.com/sharer/sharer.php?u=#{product.long_url}&quote=I+got+you+%26+i+on+%40Gumroad"
-      end
-    end
-
-    context "when title is false" do
-      it "generates the facebook share url" do
-        product = create(:product, name: "you & i")
-
-        expect(product.facebook_share_url(title: false)).to eq "https://www.facebook.com/sharer/sharer.php?u=#{product.long_url}"
-      end
-    end
-  end
-
   describe "duration_multiple_of_price_options" do
     before do
       @product = create(:subscription_product, subscription_duration: "yearly", duration_in_months: 12)

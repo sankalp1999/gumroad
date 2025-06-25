@@ -534,10 +534,6 @@ class Link < ApplicationRecord
     twitter_url(long_url, social_share_text)
   end
 
-  def facebook_share_url(title: true)
-    title ? facebook_url(long_url, social_share_text) : facebook_url(long_url)
-  end
-
   def social_share_text
     if user.twitter_handle.present?
       return "I pre-ordered #{name} from @#{user.twitter_handle} on @Gumroad" if is_in_preorder_state
