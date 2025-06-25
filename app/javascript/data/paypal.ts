@@ -1,6 +1,5 @@
 import { cast } from "ts-safe-cast";
 
-import { CurrencyCode } from "$app/utils/currency";
 import { request } from "$app/utils/request";
 
 type BillingAgreement = {
@@ -44,8 +43,6 @@ export const createBillingAgreement = async (billingAgreementTokenId: string): P
     throw e;
   }
 };
-
-type PaypalOrderResponse = { id: string; payer: { email_address: string; address: { country_code: string } } };
 
 export const createBillingAgreementToken = async (data: { shipping: boolean }): Promise<string> => {
   try {
