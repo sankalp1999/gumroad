@@ -841,19 +841,6 @@ class Link < ApplicationRecord
     variants
   end
 
-  def serialized_shipping_destinations
-    {
-      destinations: shipping_destinations.alive.map do |shipping_destination|
-        {
-          country_code: shipping_destination.country_code,
-          name: shipping_destination.country_name,
-          one_item_rate: shipping_destination.displayed_one_item_rate(price_currency_type, with_symbol: false),
-          multiple_items_rate: shipping_destination.displayed_multiple_items_rate(price_currency_type, with_symbol: false)
-        }
-      end
-    }
-  end
-
   def reorder_previews(preview_positions)
     asset_previews.alive.each do |preview|
       position = preview_positions[preview.guid].try(:to_i)
