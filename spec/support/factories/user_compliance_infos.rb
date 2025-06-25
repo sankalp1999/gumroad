@@ -13,7 +13,7 @@ FactoryBot.define do
     state { "California" }
     zip_code { "94107" }
     country { "United States" }
-    verticals { [Vertical::PUBLISHING] }
+    verticals { ["publishing"] }
     is_business { false }
     has_sold_before { false }
     individual_tax_id { "000000000" }
@@ -30,7 +30,7 @@ FactoryBot.define do
     state { "Singapore" }
     zip_code { "12345" }
     country { "Singapore" }
-    verticals { [Vertical::PUBLISHING] }
+    verticals { ["publishing"] }
     is_business { false }
     has_sold_before { false }
     individual_tax_id { "000000000" }
@@ -73,7 +73,7 @@ FactoryBot.define do
     state { "Dubai" }
     zip_code { "51133" }
     country { "United Arab Emirates" }
-    verticals { [Vertical::PUBLISHING] }
+    verticals { ["publishing"] }
     is_business { false }
     has_sold_before { false }
     individual_tax_id { "000000000" }
