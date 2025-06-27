@@ -49,19 +49,12 @@ class Product::VariantsUpdaterService
 
       variant_array = params.is_a?(Hash) ? params.values : params
       variant_array.map do |variant|
-        # TODO: product_edit_react cleanup
         options = variant[:options].is_a?(Hash) ? variant[:options].values : variant[:options]
         {
           title: variant[:name],
           id: variant[:id],
           options: options&.map do |option|
             new_option = option.slice(:id, :temp_id, :name, :description, :url, :customizable_price, :recurrence_price_values, :max_purchase_count, :integrations, :rich_content, :apply_price_changes_to_existing_memberships, :subscription_price_change_effective_date, :subscription_price_change_message, :duration_in_minutes)
-
-            # TODO: :product_edit_react cleanup
-            if option[:price_difference_cents].present?
-              option[:price] = option[:price_difference_cents]
-              option[:price] /= 100.0 unless @product.single_unit_currency?
-            end
 
             new_option.merge!(price_difference: option[:price])
             if price_change_settings = option.dig(:settings, :apply_price_changes_to_existing_memberships)

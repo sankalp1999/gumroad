@@ -127,8 +127,8 @@ RSpec.shared_context "with products and memberships" do |archived: false|
       recurrence_values = BasePrice::Recurrence.all.index_with do |recurrence_key|
         {
           enabled: true,
-          price: "8",
-          suggested_price: "8.5"
+          price_cents: 800,
+          suggested_price_cents: 850
         }
       end
       tier.save_recurring_prices!(recurrence_values)

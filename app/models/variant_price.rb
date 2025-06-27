@@ -9,17 +9,7 @@ class VariantPrice < BasePrice
 
   delegate :link, to: :variant
 
-  def price_formatted_without_symbol
-    return "" if price_cents.blank?
 
-    display_price_for_price_cents(price_cents, symbol: false)
-  end
-
-  def suggested_price_formatted_without_symbol
-    return nil if suggested_price_cents.blank?
-
-    display_price_for_price_cents(suggested_price_cents, symbol: false)
-  end
 
   private
     def display_price_for_price_cents(price_cents, additional_attrs = {})

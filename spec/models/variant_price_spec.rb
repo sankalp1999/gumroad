@@ -73,36 +73,4 @@ describe VariantPrice do
       end
     end
   end
-
-  describe "#price_formatted_without_symbol" do
-    it "returns the formatted price without a symbol" do
-      price = create(:variant_price, price_cents: 299)
-
-      expect(price.price_formatted_without_symbol).to eq "2.99"
-    end
-
-    context "when price_cents is blank" do
-      it "returns an empty string" do
-        price = build(:variant_price, price_cents: nil)
-
-        expect(price.price_formatted_without_symbol).to eq ""
-      end
-    end
-  end
-
-  describe "#suggested_price_formatted_without_symbol" do
-    it "returns the formatted suggested price without a symbol" do
-      price = create(:variant_price, suggested_price_cents: 299)
-
-      expect(price.suggested_price_formatted_without_symbol).to eq "2.99"
-    end
-
-    context "when suggested_price_cents is blank" do
-      it "returns nil" do
-        price = build(:variant_price, suggested_price_cents: nil)
-
-        expect(price.suggested_price_formatted_without_symbol).to eq nil
-      end
-    end
-  end
 end

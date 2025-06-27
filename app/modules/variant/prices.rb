@@ -14,10 +14,7 @@ module Variant::Prices
       # create prices for product with price_cents == 0
       product_recurrence_price_values = recurrence_price_values.each_with_object({}) do |(recurrence, recurrence_attributes), values|
         product_recurrence_attributes = recurrence_attributes.dup
-        # TODO: :product_edit_react cleanup
-        product_recurrence_attributes[:price] = "0" if recurrence_attributes[:price].present?
         product_recurrence_attributes[:price_cents] = 0 if recurrence_attributes[:price_cents].present?
-        product_recurrence_attributes[:suggested_price] = "0" if recurrence_attributes[:suggested_price].present?
         product_recurrence_attributes[:suggested_price_cents] = 0 if recurrence_attributes[:suggested_price_cents].present?
         values[recurrence] = product_recurrence_attributes
       end

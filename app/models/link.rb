@@ -320,7 +320,7 @@ class Link < ApplicationRecord
       default_tier.save_recurring_prices!(
         subscription_duration.to_s => {
           enabled: true,
-          price: formatted_dollar_amount(initial_price_cents)
+          price_cents: initial_price_cents.to_i
         }
       )
     end
@@ -748,11 +748,8 @@ class Link < ApplicationRecord
       next if destination.try(:[], "country_code").blank?
 
       shipping_destination = ShippingDestination.find_or_create_by(country_code: destination["country_code"], link_id: id)
-      # TODO: :product_edit_react cleanup
       one_item_rate_cents = destination["one_item_rate_cents"]
       multiple_items_rate_cents = destination["multiple_items_rate_cents"]
-      one_item_rate_cents ||= string_to_price_cents(price_currency_type, destination["one_item_rate"])
-      multiple_items_rate_cents ||= string_to_price_cents(price_currency_type, destination["multiple_items_rate"])
 
       begin
         shipping_destination.one_item_rate_cents = one_item_rate_cents

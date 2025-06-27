@@ -85,7 +85,6 @@ class Product::VariantCategoryUpdaterService
 
       Integration::ALL_NAMES.each do |name|
         integration = product.find_integration_by_name(name)
-        # TODO: :product_edit_react cleanup
         if (option.dig(:integrations, name) == "1" || option.dig(:integrations, name) == true) && integration.present?
           enabled_integrations << integration
         end

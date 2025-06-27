@@ -533,8 +533,8 @@ describe Variant do
 
           expect(variant_hash["is_customizable_price"]).to eq true
           expect(prices_hash["monthly"][:enabled]).to eq true
-          expect(prices_hash["monthly"][:price]).to eq "3"
-          expect(prices_hash["monthly"][:suggested_price]).to eq "5"
+          expect(prices_hash["monthly"][:price_cents]).to eq 300
+          expect(prices_hash["monthly"][:suggested_price_cents]).to eq 500
         end
       end
 
@@ -549,8 +549,8 @@ describe Variant do
 
           expect(variant_hash["is_customizable_price"]).to eq false
           expect(prices_hash["monthly"][:enabled]).to eq true
-          expect(prices_hash["monthly"][:price]).to eq "3"
-          expect(prices_hash["monthly"].has_key?(:suggested_price)).to be false
+          expect(prices_hash["monthly"][:price_cents]).to eq 300
+          expect(prices_hash["monthly"].has_key?(:suggested_price_cents)).to be false
         end
       end
 
@@ -564,7 +564,7 @@ describe Variant do
         monthly_price_hash = variant_hash["recurrence_price_values"]["monthly"]
 
         expect(monthly_price_hash[:enabled]).to eq false
-        expect(monthly_price_hash[:price]).to be_nil
+        expect(monthly_price_hash[:price_cents]).to be_nil
       end
     end
 
@@ -700,14 +700,13 @@ describe Variant do
       @recurrence_price_values = {
         BasePrice::Recurrence::MONTHLY => {
           enabled: true,
-          price: "20",
-          suggested_price: "25",
+          price_cents: 2000,
           suggested_price_cents: 2500,
         },
         BasePrice::Recurrence::YEARLY => {
           enabled: true,
           price_cents: 9999,
-          suggested_price: ""
+          suggested_price_cents: nil
         },
         BasePrice::Recurrence::BIANNUALLY => { enabled: false }
       }
@@ -764,13 +763,13 @@ describe Variant do
         updated_recurrence_prices = @recurrence_price_values.merge(
           BasePrice::Recurrence::MONTHLY => {
             enabled: true,
-            price: "25",
-            suggested_price: "30"
+            price_cents: 2500,
+            suggested_price_cents: 3000
           },
           BasePrice::Recurrence::QUARTERLY => {
             enabled: true,
-            price: "70",
-            suggested_price: "75"
+            price_cents: 7000,
+            suggested_price_cents: 7500
           }
         )
 
@@ -801,7 +800,7 @@ describe Variant do
     context "missing price" do
       it "raises an error" do
         invalid_values = @recurrence_price_values
-        invalid_values[BasePrice::Recurrence::MONTHLY].delete(:price)
+        invalid_values[BasePrice::Recurrence::MONTHLY].delete(:price_cents)
 
         expect do
           @variant.save_recurring_prices!(invalid_values)
@@ -811,7 +810,7 @@ describe Variant do
 
     context "with price that is too low" do
       it "raises an error" do
-        @recurrence_price_values[BasePrice::Recurrence::MONTHLY][:price] = "0.98"
+        @recurrence_price_values[BasePrice::Recurrence::MONTHLY][:price_cents] = 98
 
         expect do
           @variant.save_recurring_prices!(@recurrence_price_values)
@@ -821,7 +820,7 @@ describe Variant do
 
     context "with price that is too high" do
       it "raises an error" do
-        @recurrence_price_values[BasePrice::Recurrence::MONTHLY][:price] = "5000.01"
+        @recurrence_price_values[BasePrice::Recurrence::MONTHLY][:price_cents] = 500001
 
         expect do
           @variant.save_recurring_prices!(@recurrence_price_values)

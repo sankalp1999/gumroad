@@ -2317,7 +2317,7 @@ describe Link, :vcr do
                     "product_files_ids" => [],
                     "is_customizable_price" => false,
                     "recurrence_price_values" => {
-                      "monthly" => { enabled: true, price: "1", price_cents: 100, suggested_price_cents: nil },
+                      "monthly" => { enabled: true, price_cents: 100, suggested_price_cents: nil },
                       "quarterly" => { enabled: false },
                       "biannually" => { enabled: false },
                       "yearly" => { enabled: false },

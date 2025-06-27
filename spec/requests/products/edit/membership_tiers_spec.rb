@@ -437,13 +437,11 @@ describe("Product Edit Memberships", type: :feature, js: true) do
               "monthly" => {
                 enabled: true,
                 price_cents: 300,
-                price: "3",
                 suggested_price_cents: nil,
               },
               "quarterly" => {
                 enabled: true,
                 price_cents: 500,
-                price: "5",
                 suggested_price_cents: nil,
               },
               "biannually" => { enabled: false },
@@ -469,7 +467,6 @@ describe("Product Edit Memberships", type: :feature, js: true) do
               "monthly" => {
                 enabled: true,
                 price_cents: 300,
-                price: "3",
                 suggested_price_cents: nil,
               },
               "quarterly" => { enabled: false },
@@ -477,7 +474,6 @@ describe("Product Edit Memberships", type: :feature, js: true) do
               "yearly" => {
                 enabled: true,
                 price_cents: 1300,
-                price: "13",
                 suggested_price_cents: nil,
               },
               "every_two_years" => { enabled: false },
@@ -548,7 +544,6 @@ describe("Product Edit Memberships", type: :feature, js: true) do
                 "monthly" => {
                   enabled: true,
                   price_cents: 300,
-                  price: "3",
                   suggested_price_cents: nil,
                 },
                 "quarterly" => { enabled: false },
@@ -564,9 +559,7 @@ describe("Product Edit Memberships", type: :feature, js: true) do
                 "monthly" => {
                   enabled: true,
                   price_cents: 500,
-                  price: "5",
                   suggested_price_cents: 1000,
-                  suggested_price: "10"
                 },
                 "quarterly" => { enabled: false },
                 "biannually" => { enabled: false },

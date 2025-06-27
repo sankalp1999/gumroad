@@ -22,7 +22,6 @@ class Product::SaveIntegrationsService
           integration = product.find_integration_by_name(name)
           integration_class = Integration.class_for(name)
           integration = integration_class.new if integration.blank?
-          # TODO: :product_edit_react cleanup
           integration_details = params_for_type.delete(:integration_details) || {}
           integration.assign_attributes(
             **params_for_type.slice(

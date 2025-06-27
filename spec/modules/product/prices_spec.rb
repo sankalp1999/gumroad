@@ -220,8 +220,8 @@ describe Product::Prices do
       context "when product has multiple tiers" do
         let(:recurrence_price_values) do
           [
-            { BasePrice::Recurrence::MONTHLY => { enabled: true, price: 10 } },
-            { BasePrice::Recurrence::MONTHLY => { enabled: true, price: 2 } }
+            { BasePrice::Recurrence::MONTHLY => { enabled: true, price_cents: 1000 } },
+            { BasePrice::Recurrence::MONTHLY => { enabled: true, price_cents: 200 } }
           ]
         end
         let(:product) { create(:membership_product_with_preset_tiered_pricing, recurrence_price_values:) }
@@ -279,8 +279,8 @@ describe Product::Prices do
     it "returns formatted display_price" do
       digital_product = create(:product, price_cents: 5_00)
       recurrence_price_values =             [
-        { BasePrice::Recurrence::MONTHLY => { enabled: true, price: 10 } },
-        { BasePrice::Recurrence::MONTHLY => { enabled: true, price: 2 } }
+        { BasePrice::Recurrence::MONTHLY => { enabled: true, price_cents: 1000 } },
+        { BasePrice::Recurrence::MONTHLY => { enabled: true, price_cents: 200 } }
       ]
       membership_product = create(:membership_product_with_preset_tiered_pricing, recurrence_price_values:)
 
@@ -307,8 +307,8 @@ describe Product::Prices do
     context "for a tiered membership" do
       before :each do
         recurrence_price_values =             [
-          { BasePrice::Recurrence::MONTHLY => { enabled: true, price: 3 }, BasePrice::Recurrence::YEARLY => { enabled: true, price: 30 } },
-          { BasePrice::Recurrence::MONTHLY => { enabled: true, price: 5 }, BasePrice::Recurrence::YEARLY => { enabled: true, price: 50 } }
+          { BasePrice::Recurrence::MONTHLY => { enabled: true, price_cents: 300 }, BasePrice::Recurrence::YEARLY => { enabled: true, price_cents: 3000 } },
+          { BasePrice::Recurrence::MONTHLY => { enabled: true, price_cents: 500 }, BasePrice::Recurrence::YEARLY => { enabled: true, price_cents: 5000 } }
         ]
         @product = create(:membership_product_with_preset_tiered_pricing, recurrence_price_values:, subscription_duration: BasePrice::Recurrence::YEARLY)
       end
@@ -350,7 +350,7 @@ describe Product::Prices do
         context "with a single price" do
           before :each do
             @first_tier = @product.tiers.find_by!(name: "First Tier")
-            @first_tier.save_recurring_prices!({ BasePrice::Recurrence::YEARLY => { enabled: true, price: 2 } })
+            @first_tier.save_recurring_prices!({ BasePrice::Recurrence::YEARLY => { enabled: true, price_cents: 200 } })
             expect(@first_tier.prices.alive.count).to eq 1
           end
 
@@ -491,11 +491,11 @@ describe Product::Prices do
         recurrence_price_values = {
           BasePrice::Recurrence::MONTHLY => {
             enabled: true,
-            price: "5"
+            price_cents: 500
           },
           BasePrice::Recurrence::YEARLY => {
             enabled: true,
-            price: "40"
+            price_cents: 4000
           }
         }
 
@@ -511,11 +511,11 @@ describe Product::Prices do
         recurrence_price_values = {
           BasePrice::Recurrence::MONTHLY => {
             enabled: true,
-            price: "5"
+            price_cents: 500
           },
           BasePrice::Recurrence::QUARTERLY => {
             enabled: true,
-            price: "12"
+            price_cents: 1200
           }
         }
         @subscription_product.save_subscription_prices_and_duration!(recurrence_price_values:,
@@ -530,7 +530,7 @@ describe Product::Prices do
         recurrence_price_values = {
           BasePrice::Recurrence::QUARTERLY => {
             enabled: true,
-            price: "12"
+            price_cents: 1200
           }
         }
 
@@ -544,11 +544,11 @@ describe Product::Prices do
         recurrence_price_values = {
           BasePrice::Recurrence::MONTHLY => {
             enabled: true,
-            price: "5"
+            price_cents: 500
           },
           BasePrice::Recurrence::QUARTERLY => {
             enabled: true,
-            price: ""
+            price_cents: nil
           }
         }
 
@@ -565,11 +565,11 @@ describe Product::Prices do
         recurrence_price_values = {
           BasePrice::Recurrence::MONTHLY => {
             enabled: true,
-            price: "5"
+            price_cents: 500
           },
           BasePrice::Recurrence::QUARTERLY => {
             enabled: true,
-            price: "12"
+            price_cents: 1200
           }
         }
         @subscription_product.save_subscription_prices_and_duration!(recurrence_price_values:,
@@ -585,11 +585,11 @@ describe Product::Prices do
         recurrence_price_values = {
           BasePrice::Recurrence::MONTHLY => {
             enabled: true,
-            price: "5"
+            price_cents: 500
           },
           BasePrice::Recurrence::QUARTERLY => {
             enabled: true,
-            price: "" # Invalid
+            price_cents: nil # Invalid
           }
         }
 
@@ -605,7 +605,7 @@ describe Product::Prices do
         recurrence_price_values = {
           BasePrice::Recurrence::MONTHLY => {
             enabled: true,
-            price: "12"
+            price_cents: 1200
           }
         }
 
@@ -625,13 +625,13 @@ describe Product::Prices do
       @recurrence_price_values = {
         BasePrice::Recurrence::MONTHLY => {
           enabled: true,
-          price: "20",
-          suggested_price: "25"
+          price_cents: 2000,
+          suggested_price_cents: 2500
         },
         BasePrice::Recurrence::YEARLY => {
           enabled: true,
-          price: "99.99",
-          suggested_price: ""
+          price_cents: 9999,
+          suggested_price_cents: nil
         },
         BasePrice::Recurrence::BIANNUALLY => { enabled: false }
       }
@@ -673,13 +673,13 @@ describe Product::Prices do
         updated_recurrence_prices = @recurrence_price_values.merge(
           BasePrice::Recurrence::MONTHLY => {
             enabled: true,
-            price: "25",
-            suggested_price: "30"
+            price_cents: 2500,
+            suggested_price_cents: 3000
           },
           BasePrice::Recurrence::QUARTERLY => {
             enabled: true,
-            price: "70",
-            suggested_price: "75"
+            price_cents: 7000,
+            suggested_price_cents: 7500
           }
         )
 
@@ -698,7 +698,7 @@ describe Product::Prices do
     context "missing price" do
       it "raises an error" do
         invalid_values = @recurrence_price_values
-        invalid_values[BasePrice::Recurrence::MONTHLY].delete(:price)
+        invalid_values[BasePrice::Recurrence::MONTHLY].delete(:price_cents)
 
         expect do
           @product.save_recurring_prices!(invalid_values)

@@ -61,11 +61,7 @@ class Variant < BaseVariant
             enabled: true,
             price_cents: price.price_cents,
             suggested_price_cents: price.suggested_price_cents,
-            # TODO: :product_edit_react cleanup
-            price: price.price_formatted_without_symbol,
           }
-          # TODO: :product_edit_react cleanup
-          recurrence_price_values[recurrence][:suggested_price] = price.suggested_price_formatted_without_symbol if price.suggested_price_cents.present?
         else
           recurrence_price_values[recurrence] = {
             enabled: false

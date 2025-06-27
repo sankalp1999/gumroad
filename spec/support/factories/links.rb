@@ -245,8 +245,8 @@ My email is test@gmail.com <i>Reach out and say hi!</i>
         transient do
           recurrence_price_values do
             [
-              { "monthly": { enabled: true, price: 3 } },
-              { "monthly": { enabled: true, price: 5 } }
+              { BasePrice::Recurrence::MONTHLY => { enabled: true, price_cents: 300 } },
+              { BasePrice::Recurrence::MONTHLY => { enabled: true, price_cents: 500 } }
             ]
           end
         end
@@ -256,11 +256,37 @@ My email is test@gmail.com <i>Reach out and say hi!</i>
           first_tier = tier_category.variants.first
           first_tier.update!(name: "First Tier")
           second_tier = create(:variant, variant_category: tier_category, name: "Second Tier")
-          first_tier.save_recurring_prices!(evaluator.recurrence_price_values[0])
-          second_tier.save_recurring_prices!(evaluator.recurrence_price_values[1])
+
+          # Convert price to price_cents if needed
+          first_tier_data = evaluator.recurrence_price_values[0].transform_values do |attrs|
+            if attrs[:price].present? && attrs[:price_cents].blank?
+              attrs.merge(price_cents: (attrs[:price].to_f * 100).to_i)
+            else
+              attrs
+            end
+          end
+
+          second_tier_data = evaluator.recurrence_price_values[1].transform_values do |attrs|
+            if attrs[:price].present? && attrs[:price_cents].blank?
+              attrs.merge(price_cents: (attrs[:price].to_f * 100).to_i)
+            else
+              attrs
+            end
+          end
+
+          first_tier.save_recurring_prices!(first_tier_data)
+          second_tier.save_recurring_prices!(second_tier_data)
+
           evaluator.recurrence_price_values[2..-1].each_with_index do |recurrences, index|
             tier = create(:variant, variant_category: tier_category, name: "Tier #{index + 3}")
-            tier.save_recurring_prices!(recurrences)
+            converted_data = recurrences.transform_values do |attrs|
+              if attrs[:price].present? && attrs[:price_cents].blank?
+                attrs.merge(price_cents: (attrs[:price].to_f * 100).to_i)
+              else
+                attrs
+              end
+            end
+            tier.save_recurring_prices!(converted_data)
           end
           product.tiers.reload
         end
@@ -275,8 +301,8 @@ My email is test@gmail.com <i>Reach out and say hi!</i>
           recurrence_values = BasePrice::Recurrence.all.index_with do |recurrence_key|
             {
               enabled: true,
-              price: "500",
-              suggested_price: "600"
+              price_cents: 500,
+              suggested_price_cents: 600
             }
           end
           first_tier.save_recurring_prices!(recurrence_values)
