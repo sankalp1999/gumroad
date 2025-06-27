@@ -95,7 +95,6 @@ class User < ApplicationRecord
   has_many :accepted_alive_collaborations, -> { invitation_accepted.alive }, foreign_key: :affiliate_user_id, class_name: Collaborator.name
   has_many :collaborating_products, through: :accepted_alive_collaborations, source: :products
   has_one :large_seller, dependent: :destroy
-  has_one :yearly_stat, dependent: :destroy
   has_many :stripe_apple_pay_domains
   has_one :global_affiliate, -> { alive }, foreign_key: :affiliate_user_id, autosave: true
   has_many :upsells, foreign_key: :seller_id
@@ -686,10 +685,6 @@ class User < ApplicationRecord
 
   def active_ach_account
     bank_accounts.alive.where("type = ?", AchAccount.name).first
-  end
-
-  def dismissed_audience_callout?
-    Event.where(event_name: "audience_callout_dismissal", user_id: id).exists?
   end
 
   def has_workflows?

@@ -725,10 +725,6 @@ Rails.application.routes.draw do
 
 
     get "/dashboard" => "dashboard#index", as: :dashboard
-    get "/dashboard/customers_count" => "dashboard#customers_count", as: :dashboard_customers_count
-    get "/dashboard/total_revenue" => "dashboard#total_revenue", as: :dashboard_total_revenue
-    get "/dashboard/active_members_count" => "dashboard#active_members_count", as: :dashboard_active_members_count
-    get "/dashboard/monthly_recurring_revenue" => "dashboard#monthly_recurring_revenue", as: :dashboard_monthly_recurring_revenue
     get "/dashboard/download_tax_form" => "dashboard#download_tax_form", as: :dashboard_download_tax_form
 
     get "/products", to: "links#index", as: :products

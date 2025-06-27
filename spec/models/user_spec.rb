@@ -124,10 +124,7 @@ describe User, :vcr do
       expect(@user.blocked_customer_objects).to match_array([blocked_customer_object1, blocked_customer_object2])
     end
 
-    it "has_one yearly stat" do
-      yearly_stat = create(:yearly_stat, user: @user)
-      expect(@user.yearly_stat).to eq yearly_stat
-    end
+
 
     it "has_many utm_links" do
       utm_link = create(:utm_link, seller: @user)

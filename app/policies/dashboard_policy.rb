@@ -8,9 +8,5 @@ class DashboardPolicy < ApplicationPolicy
     user.role_support_for?(seller)
   end
 
-  def customers_count? = index?
-  def total_revenue? = index?
-  def active_members_count? = index?
-  def monthly_recurring_revenue? = index?
   def download_tax_form? = index?
 end
