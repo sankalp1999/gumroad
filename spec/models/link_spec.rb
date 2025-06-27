@@ -5045,4 +5045,35 @@ describe Link, :vcr do
       end
     end
   end
+
+  describe "suggested_price validation" do
+    let(:product) { create(:product, customizable_price: true, price_cents: 500) }
+
+    it "validates suggested_price_cents cannot be less than price_cents for customizable price products" do
+      product.suggested_price_cents = 400
+      expect(product.valid?).to be(false)
+      expect(product.errors[:base]).to include("The suggested price you entered was too low.")
+    end
+
+    it "allows suggested_price_cents to be equal to price_cents" do
+      product.suggested_price_cents = 500
+      expect(product.valid?).to be(true)
+    end
+
+    it "allows suggested_price_cents to be greater than price_cents" do
+      product.suggested_price_cents = 600
+      expect(product.valid?).to be(true)
+    end
+
+    it "does not validate suggested_price for non-customizable price products" do
+      product.customizable_price = false
+      product.suggested_price_cents = 100
+      expect(product.valid?).to be(true)
+    end
+  end
+
+  it "creates a permalink" do
+    link.save!
+    expect(link.unique_permalink).to_not be(nil)
+  end
 end

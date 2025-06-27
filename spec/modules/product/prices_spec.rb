@@ -104,8 +104,6 @@ describe Product::Prices do
     end
   end
 
-
-
   describe "#display_price_cents" do
     it "returns the default_price" do
       product = create(:product, price_cents: 5_00)
@@ -685,6 +683,66 @@ describe Product::Prices do
         expect do
           @product.save_recurring_prices!(invalid_values)
         end.to raise_error Link::LinkInvalid
+      end
+    end
+  end
+
+  describe "#clean_price" do
+    let(:product) { create(:product) }
+
+    context "with American-style formatting" do
+      it "handles standard dollar amounts" do
+        expect(product.clean_price("1")).to eq 100
+        expect(product.clean_price("1.01")).to eq 101
+        expect(product.clean_price("10.01")).to eq 1001
+      end
+
+      it "handles amounts with dollar signs" do
+        expect(product.clean_price("$1")).to eq 100
+        expect(product.clean_price("$1.01")).to eq 101
+        expect(product.clean_price("$10.01")).to eq 1001
+      end
+
+      it "handles amounts with commas as thousands separators" do
+        expect(product.clean_price("1,000")).to eq 100_000
+        expect(product.clean_price("1,000.50")).to eq 100_050
+        expect(product.clean_price("$1,999.99")).to eq 199_999
+      end
+
+      it "absorbs random data" do
+        expect(product.clean_price("1sdlkjglsjdhgfsjhdgf")).to eq 100
+        expect(product.clean_price("1.sdlkjglsjdhgfsjhdgf01")).to eq 101
+        expect(product.clean_price("1sdlkjglsjdhgfsjhdgf0.01")).to eq 1001
+      end
+    end
+
+    context "with Euro-style formatting" do
+      it "handles comma as decimal separator" do
+        expect(product.clean_price("999,99")).to eq 99_999
+        expect(product.clean_price("1,50")).to eq 150
+        expect(product.clean_price("10,01")).to eq 1001
+      end
+
+      it "handles period as thousands separator with comma decimal" do
+        expect(product.clean_price("1.999,99")).to eq 199_999
+        expect(product.clean_price("1.000,50")).to eq 100_050
+        expect(product.clean_price("10.000,01")).to eq 1_000_001
+      end
+    end
+
+    context "with single unit currency (JPY)" do
+      before { product.price_currency_type = :jpy }
+
+      it "treats values as whole units" do
+        expect(product.clean_price("100")).to eq 100
+        expect(product.clean_price("¥100")).to eq 100
+        expect(product.clean_price("1,000")).to eq 1000
+      end
+
+      it "rounds decimal values for yen" do
+        expect(product.clean_price("¥100.01")).to eq 100
+        expect(product.clean_price("100.99")).to eq 101
+        expect(product.clean_price("100.49")).to eq 100
       end
     end
   end
