@@ -104,25 +104,7 @@ describe Product::Prices do
     end
   end
 
-  describe "#rental_price_range=" do
-    context "when the price is blank" do
-      it "raises an exception" do
-        expect do
-          @product.rental_price_range = ""
-        end.to raise_error(ActiveRecord::RecordInvalid)
-        expect(@product.errors[:base].first).to eq("Please enter the rental price.")
-      end
-    end
 
-    context "when the price is valid" do
-      it "sets the price correctly" do
-        @product.rental_price_range = "1.23"
-
-        expect(@product.valid?).to be(true)
-        expect(@product.prices.alive.is_rental.last.price_cents).to be(123)
-      end
-    end
-  end
 
   describe "#display_price_cents" do
     it "returns the default_price" do

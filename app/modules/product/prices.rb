@@ -60,23 +60,6 @@ module Product::Prices
     update_column(:customizable_price, true)
   end
 
-  def price_range=(price)
-    return unless price
-
-    price_string = price.to_s
-    self.price_cents = clean_price(price_string)
-    write_customizable_price(price_string)
-  end
-
-  def rental_price_range=(rental_price_string)
-    self.rental_price_cents = rental_price_string.present? ? clean_price(rental_price_string) : nil
-    write_customizable_price(rental_price_string) if rent_only?
-  end
-
-  def suggested_price=(price)
-    self.suggested_price_cents = price.present? ? clean_price(price.to_s) : nil
-  end
-
   def format_price(price)
     price == "$0.99" ? "99¢" : price
   end
