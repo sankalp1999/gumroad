@@ -516,15 +516,7 @@ Rails.application.routes.draw do
       end
     end
 
-    # service charges
-    resources :service_charges, only: :create do
-      member do
-        post :confirm
-        get :generate_service_charge_invoice
-        post :resend_receipt
-        post :send_invoice
-      end
-    end
+
 
     # Two-Factor Authentication
     get "/two-factor", to: "two_factor_authentication#new", as: :two_factor_authentication
