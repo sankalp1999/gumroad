@@ -16,34 +16,6 @@ class DashboardController < Sellers::BaseController
     end
   end
 
-  def customers_count
-    authorize :dashboard
-
-    count = current_seller.all_sales_count
-    render json: { success: true, value: number_with_delimiter(count) }
-  end
-
-  def total_revenue
-    authorize :dashboard
-
-    revenue = current_seller.gross_sales_cents_total_as_seller
-    render json: { success: true, value: formatted_dollar_amount(revenue) }
-  end
-
-  def active_members_count
-    authorize :dashboard
-
-    count = current_seller.active_members_count
-    render json: { success: true, value: number_with_delimiter(count) }
-  end
-
-  def monthly_recurring_revenue
-    authorize :dashboard
-
-    revenue = current_seller.monthly_recurring_revenue
-    render json: { success: true, value: formatted_dollar_amount(revenue) }
-  end
-
   def download_tax_form
     authorize :dashboard
 

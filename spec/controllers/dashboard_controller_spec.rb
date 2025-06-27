@@ -139,69 +139,7 @@ describe DashboardController do
     end
   end
 
-  describe "GET customers_count" do
-    it_behaves_like "authorize called for action", :get, :customers_count do
-      let(:record) { :dashboard }
-    end
 
-    it "returns the formatted number of customers" do
-      allow_any_instance_of(User).to receive(:all_sales_count).and_return(123_456)
-
-      get :customers_count
-
-      expect(response).to be_successful
-      expect(response.parsed_body["success"]).to eq(true)
-      expect(response.parsed_body["value"]).to eq("123,456")
-    end
-  end
-
-  describe "GET total_revenue" do
-    it_behaves_like "authorize called for action", :get, :total_revenue do
-      let(:record) { :dashboard }
-    end
-
-    it "returns the formatted revenue" do
-      allow_any_instance_of(User).to receive(:gross_sales_cents_total_as_seller).and_return(123_456)
-
-      get :total_revenue
-
-      expect(response).to be_successful
-      expect(response.parsed_body["success"]).to eq(true)
-      expect(response.parsed_body["value"]).to eq("$1,234.56")
-    end
-  end
-
-  describe "GET active_members_count" do
-    it_behaves_like "authorize called for action", :get, :active_members_count do
-      let(:record) { :dashboard }
-    end
-
-    it "returns the formatted revenue" do
-      allow_any_instance_of(User).to receive(:active_members_count).and_return(123_456)
-
-      get :active_members_count
-
-      expect(response).to be_successful
-      expect(response.parsed_body["success"]).to eq(true)
-      expect(response.parsed_body["value"]).to eq("123,456")
-    end
-  end
-
-  describe "GET monthly_recurring_revenue" do
-    it_behaves_like "authorize called for action", :get, :monthly_recurring_revenue do
-      let(:record) { :dashboard }
-    end
-
-    it "returns the formatted revenue" do
-      allow_any_instance_of(User).to receive(:monthly_recurring_revenue).and_return(123_456)
-
-      get :monthly_recurring_revenue
-
-      expect(response).to be_successful
-      expect(response.parsed_body["success"]).to eq(true)
-      expect(response.parsed_body["value"]).to eq("$1,234.56")
-    end
-  end
 
   describe "GET download_tax_form" do
     it_behaves_like "authorize called for action", :get, :download_tax_form do
