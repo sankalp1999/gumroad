@@ -14,7 +14,6 @@ class ThirdPartyAnalytic < ApplicationRecord
   scope :universal, -> { where("link_id is null") }
 
   FOR_ALL_PRODUCTS = "#all_products"
-  LOCATIONS = ["all", "product", "receipt"]
 
   class ThirdPartyAnalyticInvalid < StandardError
   end
