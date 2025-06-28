@@ -9,8 +9,17 @@ class Api::V2::LinksController < Api::V2::BaseController
 
   def index
     products = current_resource_owner.products.visible.includes(
-      :preorder_link, :tags, :taxonomy,
-      variant_categories_alive: [:alive_variants],
+      :tags,
+      :asset_previews,
+      :thumbnail,
+      :preorder_link,
+      :alive_prices,
+      :product_files,
+      :custom_fields,
+      :taxonomy,
+      { user: [:bank_accounts, :merchant_accounts, :custom_fields] },
+      { prices: :link },
+      variant_categories_alive: { alive_variants: :variant_category }
     ).order(created_at: :desc)
 
     as_json_options = {

@@ -152,8 +152,11 @@ class UrlRedirectPresenter
         [purchase.id]
       end
       purchases = Purchase.where(id: purchase_ids)
+
+      purchases_by_link_id = purchases.index_by(&:link_id)
+
       Purchase.product_installments(purchase_ids:).map do |post|
-        post_purchase = purchases.find { |record| record.link_id == post.link_id } || purchase
+        post_purchase = purchases_by_link_id[post.link_id] || purchase
         return unless post_purchase.present?
 
         seller_domain = if post.user.custom_domain&.active?
