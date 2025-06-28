@@ -8,19 +8,27 @@ class Api::V2::LinksController < Api::V2::BaseController
   before_action :fetch_product, only: [:show, :update, :disable, :enable, :destroy]
 
   def index
-    products = current_resource_owner.products.visible.includes(
-      :tags,
-      :asset_previews,
-      :thumbnail,
-      :preorder_link,
-      :alive_prices,
-      :product_files,
-      :custom_fields,
-      :taxonomy,
-      { user: [:bank_accounts, :merchant_accounts, :custom_fields] },
-      { prices: :link },
-      variant_categories_alive: { alive_variants: :variant_category }
-    ).order(created_at: :desc)
+    products = current_resource_owner.products.visible
+      .select(
+        :id, :user_id, :name, :description, :require_shipping, :preview_url,
+        :custom_receipt, :customizable_price, :custom_permalink, :subscription_duration,
+        :price_currency_type, :deleted_at, :max_purchase_count, :purchase_disabled_at,
+        :banned_at, :flags, :price_cents, :rental_price_cents,
+        :unique_permalink, :native_type, :purchase_type, :json_data, :created_at, :taxonomy_id
+      )
+      .includes(
+        :tags,
+        :asset_previews,
+        :thumbnail,
+        :preorder_link,
+        :alive_prices,
+        :product_files,
+        :custom_fields,
+        :taxonomy,
+        { user: [:bank_accounts, :merchant_accounts, :custom_fields] },
+        { prices: :link },
+        variant_categories_alive: { alive_variants: :variant_category }
+      ).order(created_at: :desc)
 
     as_json_options = {
       api_scopes: doorkeeper_token.scopes,
