@@ -153,7 +153,7 @@ class UrlRedirectPresenter
       end
       purchases = Purchase.where(id: purchase_ids)
 
-      purchases_by_link_id = purchases.index_by(&:link_id)
+      purchases_by_link_id = purchases.group_by(&:link_id).transform_values(&:first)
 
       Purchase.product_installments(purchase_ids:).map do |post|
         post_purchase = purchases_by_link_id[post.link_id] || purchase

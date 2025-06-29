@@ -1363,7 +1363,7 @@ class Link < ApplicationRecord
         "currency" => price_currency_type,
         "short_url" => long_url,
         "thumbnail_url" => thumbnail&.alive&.url.presence,
-        "tags" => preloaded_tags.map(&:name),
+        "tags" => tags.loaded? ? tags.map(&:name) : tags.pluck(:name),
         "formatted_price" => price_formatted_verbose,
         "published" => alive?,
         "file_info" => multifile_aware_product_file_info,
