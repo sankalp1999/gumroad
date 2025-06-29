@@ -20,7 +20,6 @@ class RedisKey
     def card_testing_failed_purchases_in_a_row_watch_days = "card_testing_failed_purchases_in_a_row_watch_days"
     def followers_import_limit = "followers_import:limit"
     def force_product_id_timestamp = "force_product_id_timestamp"
-    def api_v2_sales_deprecated_pagination_query_timeout = "api_v2_sales_deprecated_pagination_query_timeout"
     def free_purchases_watch_hours = "free_purchases_watch_hours"
     def max_allowed_free_purchases_of_same_product = "max_allowed_free_purchases_of_same_product"
     def fraudulent_free_purchases_block_hours = "fraudulent_free_purchases_block_hours"

@@ -9,12 +9,10 @@ class Purchase < ApplicationRecord
           Refundable, Reviews, PingNotification, Searchable,
           CreatorAnalyticsCallbacks, FlagShihTzu, AfterCommitEverywhere, CompletionHandler, Integrations,
           ChargeEventsHandler, AudienceMember, Reportable, Recommended, CustomFields, Charge::Disputable,
-          Charge::Chargeable, Charge::Refundable, DisputeWinCredits, Order::Orderable, Receipt, UnusedColumns
+          Charge::Chargeable, Charge::Refundable, DisputeWinCredits, Order::Orderable, Receipt
 
   extend PreorderHelper
   extend ProductsHelper
-
-  unused_columns :custom_fields
 
   # If a sku-enabled product has no skus (i.e. the product has no variants), then the sku id of the purchase will be "pid_#{external_product_id}".
   SKU_ID_PREFIX_FOR_PRODUCT_WITH_NO_SKUS = "pid_"
@@ -2008,7 +2006,6 @@ class Purchase < ApplicationRecord
       json_data[:product_updates_data] = update_json_data_for_mobile
       json_data[:user_id] = purchaser.external_id if purchaser
       json_data[:is_archived] = is_archived
-      json_data[:custom_delivery_url] = nil # Deprecated
     end
 
     if subscription.present?
@@ -2794,6 +2791,7 @@ class Purchase < ApplicationRecord
     # credit card. The new chargeable will be returned.
     #
     # Returns: The final chargeable that should be used for charging. May be the same object passed in or different.
+    # If there is no chargeable available nil will be returned.
     def prepare_chargeable_for_charge!(chargeable)
       begin
         self.card_visual = chargeable.visual

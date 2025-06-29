@@ -572,7 +572,6 @@ class Link < ApplicationRecord
         "recommendable" => recommendable?,
         "rated_as_adult" => rated_as_adult?,
       )
-      json["custom_delivery_url"] = nil # Deprecated
       if preorder_link.present?
         json.merge!(
           "is_preorder" => true,
@@ -1314,7 +1313,6 @@ class Link < ApplicationRecord
 
       json = super_as_json(only: keep).merge!(
         "id" => external_id,
-        "url" => nil, # Deprecated
         "price" => cached_default_price_cents,
         "currency" => price_currency_type,
         "short_url" => long_url,
@@ -1338,7 +1336,6 @@ class Link < ApplicationRecord
                 price_difference: variant.price_difference_cents,
                 is_pay_what_you_want: variant.customizable_price?,
                 recurrence_prices: is_tiered_membership? ? variant.recurrence_price_values : nil,
-                url: nil, # Deprecated
               }
             end.map do
               ppp_factors.blank? ? _1 :
@@ -1365,7 +1362,6 @@ class Link < ApplicationRecord
       end
 
       if options[:api_scopes].include?("view_sales")
-        json["custom_delivery_url"] = nil # Deprecated
         json["sales_count"] = successful_sales_count
         json["sales_usd_cents"] = total_usd_cents
       end

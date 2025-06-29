@@ -4,7 +4,6 @@ class Api::V2::SalesController < Api::V2::BaseController
   before_action(only: [:index, :show]) { doorkeeper_authorize! :view_sales }
   before_action(only: [:mark_as_shipped]) { doorkeeper_authorize! :mark_sales_as_shipped }
   before_action(only: [:refund]) { doorkeeper_authorize! :refund_sales }
-  before_action :set_page, only: :index
 
   RESULTS_PER_PAGE = 10
 
@@ -36,26 +35,6 @@ class Api::V2::SalesController < Api::V2::BaseController
       return error_400("Invalid order ID.") if params[:order_id].to_i.to_s != params[:order_id]
 
       purchase_id = ObfuscateIds.decrypt_numeric(params[:order_id].to_i)
-    end
-
-    if params[:page] # DEPRECATED
-      filtered_sales = filter_sales(start_date:, end_date:, email:, product_id:, purchase_id:, root_scope: current_resource_owner.sales)
-      begin
-        timeout_s = ($redis.get(RedisKey.api_v2_sales_deprecated_pagination_query_timeout) || 15).to_i
-        WithMaxExecutionTime.timeout_queries(seconds: timeout_s) do
-          paginated_sales = filtered_sales.for_sales_api.limit(RESULTS_PER_PAGE + 1).offset((@page - 1) * RESULTS_PER_PAGE).to_a
-          has_next_page = paginated_sales.size > RESULTS_PER_PAGE
-          paginated_sales = paginated_sales.first(RESULTS_PER_PAGE)
-          if has_next_page
-            success_with_object(:sales, paginated_sales.as_json(version: 2), pagination_info(paginated_sales.last))
-          else
-            success_with_object(:sales, paginated_sales.as_json(version: 2))
-          end
-        end
-      rescue WithMaxExecutionTime::QueryTimeoutError
-        error_400("The 'page' parameter is deprecated. Please use 'page_key' instead: https://gumroad.com/api#sales")
-      end
-      return
     end
 
     if params[:page_key].present?
@@ -136,10 +115,5 @@ class Api::V2::SalesController < Api::V2::BaseController
       sales = sales.where(link_id: product_id) if product_id.present?
       sales = sales.where(id: purchase_id) if purchase_id.present?
       sales.order(created_at: :desc, id: :desc)
-    end
-
-    def set_page # DEPRECATED
-      @page = (params[:page] || 1).to_i
-      error_400("Invalid page number. Page numbers start at 1.") unless @page > 0
     end
 end

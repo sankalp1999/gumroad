@@ -101,8 +101,6 @@ class ServiceCharge < ApplicationRecord
       card: {
         visual: card_visual,
         type: card_type,
-        # legacy param
-        bin: nil,
         expiry_month: card_expiry_month,
         expiry_year: card_expiry_year
       }

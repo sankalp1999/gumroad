@@ -8,7 +8,6 @@ module Purchase::PingNotification
       seller_id: ObfuscateIds.encrypt(seller.id),
       product_id: ObfuscateIds.encrypt(link.id),
       product_name: link.name,
-      permalink: link.general_permalink,
       product_permalink: link.long_url,
       short_product_id: link.unique_permalink,
       email:,
@@ -21,12 +20,7 @@ module Purchase::PingNotification
       referrer:,
       card: {
         visual: card_visual,
-        type: card_type,
-
-        # legacy params
-        bin: nil,
-        expiry_month: nil,
-        expiry_year: nil
+        type: card_type
       }
     }
 

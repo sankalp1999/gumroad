@@ -29,7 +29,6 @@ module Product::ReviewStat
     purchase_is_valid = purchase.allows_review_to_be_counted?
     old_purchase = Purchase.new(
       purchase.attributes
-        .except(*Purchase.unused_attributes)
         .merge(purchase_changes.stringify_keys.transform_values(&:first))
     )
     old_purchase_is_valid = old_purchase.allows_review_to_be_counted?

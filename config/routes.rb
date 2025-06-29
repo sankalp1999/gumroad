@@ -309,7 +309,6 @@ Rails.application.routes.draw do
     delete "/notion/unfurl" => "api/v2/notion_unfurl_urls#destroy"
 
     # legacy routes
-    get "users/password/new" => redirect("/login")
 
     # /robots.txt
     get "/robots.:format" => "robots#index"
