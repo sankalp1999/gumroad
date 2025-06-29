@@ -10,24 +10,24 @@ module ManageSubscriptionHelpers
 
     @product = create(:membership_product_with_preset_tiered_pricing, recommendable ? :recommendable : nil, recurrence_price_values: [
                         {
-                          BasePrice::Recurrence::MONTHLY => { enabled: true, price: 3 },
-                          BasePrice::Recurrence::QUARTERLY => { enabled: true, price: 5.99 },
-                          BasePrice::Recurrence::YEARLY => { enabled: true, price: 10 },
-                          BasePrice::Recurrence::EVERY_TWO_YEARS => { enabled: true, price: 18 },
+                          BasePrice::Recurrence::MONTHLY => { enabled: true, price_cents: 300 },
+                          BasePrice::Recurrence::QUARTERLY => { enabled: true, price_cents: 599 },
+                          BasePrice::Recurrence::YEARLY => { enabled: true, price_cents: 1000 },
+                          BasePrice::Recurrence::EVERY_TWO_YEARS => { enabled: true, price_cents: 1800 },
                         },
                         # more expensive tier
                         {
-                          BasePrice::Recurrence::MONTHLY => { enabled: true, price: 5 },
-                          BasePrice::Recurrence::QUARTERLY => { enabled: true, price: 10.50 },
-                          BasePrice::Recurrence::YEARLY => { enabled: true, price: 20 },
-                          BasePrice::Recurrence::EVERY_TWO_YEARS => { enabled: true, price: 35 },
+                          BasePrice::Recurrence::MONTHLY => { enabled: true, price_cents: 500 },
+                          BasePrice::Recurrence::QUARTERLY => { enabled: true, price_cents: 1050 },
+                          BasePrice::Recurrence::YEARLY => { enabled: true, price_cents: 2000 },
+                          BasePrice::Recurrence::EVERY_TWO_YEARS => { enabled: true, price_cents: 3500 },
                         },
                         # cheaper tier
                         {
-                          BasePrice::Recurrence::MONTHLY => { enabled: true, price: 2.50 },
-                          BasePrice::Recurrence::QUARTERLY => { enabled: true, price: 4 },
-                          BasePrice::Recurrence::YEARLY => { enabled: true, price: 7.75 },
-                          BasePrice::Recurrence::EVERY_TWO_YEARS => { enabled: true, price: 15 },
+                          BasePrice::Recurrence::MONTHLY => { enabled: true, price_cents: 250 },
+                          BasePrice::Recurrence::QUARTERLY => { enabled: true, price_cents: 400 },
+                          BasePrice::Recurrence::YEARLY => { enabled: true, price_cents: 775 },
+                          BasePrice::Recurrence::EVERY_TWO_YEARS => { enabled: true, price_cents: 1500 },
                         },
                       ])
     @monthly_product_price = @product.prices.alive.find_by!(recurrence: BasePrice::Recurrence::MONTHLY)

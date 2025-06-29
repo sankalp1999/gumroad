@@ -3568,9 +3568,9 @@ describe LinksController, :vcr do
 
         it "renders schema.org item props for single-tier membership product" do
           recurrence_price_values = {
-            BasePrice::Recurrence::MONTHLY => { enabled: true, price: 2.5 },
-            BasePrice::Recurrence::BIANNUALLY => { enabled: true, price: 15 },
-            BasePrice::Recurrence::YEARLY => { enabled: true, price: 30 },
+            BasePrice::Recurrence::MONTHLY => { enabled: true, price_cents: 250 },
+            BasePrice::Recurrence::BIANNUALLY => { enabled: true, price_cents: 1500 },
+            BasePrice::Recurrence::YEARLY => { enabled: true, price_cents: 3000 },
           }
           product = create(:membership_product, user: @user)
           product.default_tier.save_recurring_prices!(recurrence_price_values)
@@ -3586,8 +3586,8 @@ describe LinksController, :vcr do
 
         it "renders schema.org item props for multi-tier membership product" do
           recurrence_price_values = [
-            { BasePrice::Recurrence::MONTHLY => { enabled: true, price: 2.5 } },
-            { BasePrice::Recurrence::MONTHLY => { enabled: true, price: 5 } }
+            { BasePrice::Recurrence::MONTHLY => { enabled: true, price_cents: 250 } },
+            { BasePrice::Recurrence::MONTHLY => { enabled: true, price_cents: 500 } }
           ]
           product = create(:membership_product_with_preset_tiered_pricing, recurrence_price_values:, user: @user)
           get :show, params: { id: product.unique_permalink }

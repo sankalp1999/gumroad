@@ -25,8 +25,8 @@ describe("Subscription Purchases from the product page", type: :feature, js: tru
 
     context "with multiple recurrences" do
       before do
-        @first_tier.save_recurring_prices!("monthly" => { enabled: true, price: 2 }, "yearly" => { enabled: true, price: 10 })
-        @second_tier.save_recurring_prices!("monthly" => { enabled: true, price: 3 }, "yearly" => { enabled: true, price: 14 })
+        @first_tier.save_recurring_prices!("monthly" => { enabled: true, price_cents: 200 }, "yearly" => { enabled: true, price_cents: 1000 })
+        @second_tier.save_recurring_prices!("monthly" => { enabled: true, price_cents: 300 }, "yearly" => { enabled: true, price_cents: 1400 })
       end
 
       it "allows to switch the recurrence and shows tiers' prices for that recurrence" do
@@ -65,7 +65,7 @@ describe("Subscription Purchases from the product page", type: :feature, js: tru
       context "when a tier has pay-what-you-want enabled" do
         before do
           @second_tier.update!(customizable_price: true)
-          @second_tier.save_recurring_prices!("monthly" => { enabled: true, price: 3, suggested_price: 5 }, "yearly" => { enabled: true, price: 14, suggested_price: 20 })
+          @second_tier.save_recurring_prices!("monthly" => { enabled: true, price_cents: 300, suggested_price_cents: 500 }, "yearly" => { enabled: true, price_cents: 1400, suggested_price_cents: 2000 })
         end
 
         it "reflects PWYW-ability in the price tag of that tier (and that tier only)" do

@@ -24,7 +24,7 @@ describe("Offer-code usage from product page for tiered membership", type: :feat
     before do
       tier_category = product.tier_category
       @first_tier = tier_category.variants.first
-      @first_tier.save_recurring_prices!("monthly" => { enabled: true, price: 2 }, "yearly" => { enabled: true, price: 10 })
+      @first_tier.save_recurring_prices!("monthly" => { enabled: true, price_cents: 200 }, "yearly" => { enabled: true, price_cents: 1000 })
       @second_tier = tier_category.variants.last
       @second_tier.mark_deleted
     end
