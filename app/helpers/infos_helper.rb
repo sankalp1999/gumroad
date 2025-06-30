@@ -21,14 +21,6 @@ module InfosHelper
     ActionController::Base.helpers.number_to_human_size(size)
   end
 
-  def bitrate_displayable
-    "#{bitrate} kbps" if bitrate
-  end
-
-  def framerate_displayable
-    "#{framerate} fps" if framerate
-  end
-
   def pagelength_displayable
     return unless pagelength
     pluralize(pagelength, epub? ? "section" : "page")

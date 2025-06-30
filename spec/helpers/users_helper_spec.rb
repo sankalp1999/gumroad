@@ -3,13 +3,6 @@
 require "spec_helper"
 
 describe UsersHelper do
-  describe "#allowed_avatar_extensions" do
-    it "returns supported profile picture extensions separated by comma" do
-      extensions = User::ALLOWED_AVATAR_EXTENSIONS.map { |extension| ".#{extension}" }.join(",")
-      expect(helper.allowed_avatar_extensions).to eq extensions
-    end
-  end
-
   describe "#is_third_party_analytics_enabled?" do
     let(:seller) { create(:named_seller) }
     let(:logged_in_seller) { create(:user) }
@@ -65,20 +58,6 @@ describe UsersHelper do
 
         context "without seller param" do
           context "with logged_in_seller param" do
-            context "with logged_in_seller not signed in" do
-              it "ignores logged_in_seller param and returns 'true' by default" do
-                logged_in_seller.disable_third_party_analytics = false
-                expect(
-                  helper.is_third_party_analytics_enabled?(seller: nil, logged_in_seller: nil)
-                ).to eq true
-
-                logged_in_seller.disable_third_party_analytics = true
-                expect(
-                  helper.is_third_party_analytics_enabled?(seller: nil, logged_in_seller: nil)
-                ).to eq true
-              end
-            end
-
             context "with logged_in_seller signed in" do
               before do
                 sign_in logged_in_seller

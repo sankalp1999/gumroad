@@ -1,10 +1,6 @@
 # frozen_string_literal: true
 
 module UsersHelper
-  def allowed_avatar_extensions
-    User::ALLOWED_AVATAR_EXTENSIONS.map { |extension| ".#{extension}" }.join(",")
-  end
-
   def is_third_party_analytics_enabled?(seller:, logged_in_seller:)
     seller ||= user_signed_in? && logged_in_seller
     # Third-party analytics services are enabled by default on non-seller pages.
