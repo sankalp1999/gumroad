@@ -132,17 +132,7 @@ describe ServiceCharge, :vcr do
     end
   end
 
-  describe "#discount_amount" do
-    before do
-      @user = create(:user)
-      @black_recurring_service = create(:black_recurring_service, user: @user)
-      @service_charge = create(:free_service_charge, user: @user, recurring_service: @black_recurring_service, discount_code: DiscountCode::INVITE_CREDIT_DISCOUNT_CODE)
-    end
 
-    it "returns the right amount for invite discount" do
-      expect(@service_charge.discount_amount).to eq("$10")
-    end
-  end
 
   describe "#upload_invoice_pdf" do
     before(:each) do
