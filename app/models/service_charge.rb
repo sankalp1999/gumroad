@@ -127,20 +127,6 @@ class ServiceCharge < ApplicationRecord
     fields
   end
 
-  def discount_amount
-    discount = DiscountCode::DISCOUNT_CODES[discount_code.to_sym]
-    amount = discount[:function] ? recurring_service.send(discount[:function]) : discount[:amount]
-
-    if discount[:type] == :percentage
-      old_total = charge_cents / (1 - amount / 100.0).round
-      discount_cents = old_total - charge_cents
-    elsif discount[:type] == :cents
-      discount_cents = amount
-    end
-
-    MoneyFormatter.format(discount_cents, :usd, no_cents_if_whole: true, symbol: true)
-  end
-
   def upload_invoice_pdf(pdf)
     timestamp = Time.current.strftime("%F")
     key = "#{Rails.env}/#{timestamp}/invoices/service_charges/#{external_id}-#{SecureRandom.hex}/invoice.pdf"
