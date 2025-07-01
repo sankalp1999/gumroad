@@ -121,10 +121,6 @@ class ServiceCharge < ApplicationRecord
     MoneyFormatter.format(charge_cents, :usd, no_cents_if_whole: true, symbol: true)
   end
 
-  def send_service_charge_receipt
-    ServiceMailer.service_charge_receipt(id).deliver_later(queue: "critical", wait: 3.seconds)
-  end
-
   def time_fields
     fields = attributes.keys.keep_if { |key| key.include?("_at") && send(key) }
     fields << "chargeback_date" if chargeback_date
