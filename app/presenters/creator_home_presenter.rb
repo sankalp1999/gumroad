@@ -31,9 +31,9 @@ class CreatorHomePresenter
     top_sales_data = analytics[:by_date][:sales]
       .sort_by { |_, sales| -sales&.sum }.take(BALANCE_ITEMS_LIMIT)
 
-    # Preload products with thumbnail attachments to avoid N+1 queries
     product_permalinks = top_sales_data.map(&:first)
     products_by_permalink = seller.products
+      .visible
       .where(unique_permalink: product_permalinks)
       .includes(thumbnail: { file_attachment: { blob: { variant_records: { image_attachment: :blob } } } })
       .index_by(&:unique_permalink)

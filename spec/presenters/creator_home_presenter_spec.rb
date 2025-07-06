@@ -162,6 +162,54 @@ describe CreatorHomePresenter do
       )
     end
 
+    it "excludes deleted products from best selling section even if they have sales", :sidekiq_inline, :elasticsearch_wait_for_refresh do
+      recreate_model_index(Purchase)
+
+      product1 = create(:product, user: seller)
+      product2 = create(:product, user: seller)
+      deleted_product = create(:product, user: seller)
+
+      # Create sales for all products
+      create(:purchase, link: product1, price_cents: 100, created_at: 3.days.ago)
+      create(:purchase, link: product2, price_cents: 500, created_at: 2.days.ago)
+      create(:purchase, link: deleted_product, price_cents: 1000, created_at: 1.day.ago)
+
+      # Delete the product that had the highest sales
+      deleted_product.mark_deleted!
+
+      # Should only include the non-deleted products
+      expect(presenter.creator_home_props[:sales]).to match(
+        [
+          {
+            "id" => product2.unique_permalink,
+            "name" => "The Works of Edgar Gumstein",
+            "thumbnail" => nil,
+            "revenue" => 500.0,
+            "sales" => 1,
+            "visits" => 0,
+            "today" => 0,
+            "last_7" => 500,
+            "last_30" => 500,
+          },
+          {
+            "id" => product1.unique_permalink,
+            "name" => "The Works of Edgar Gumstein",
+            "thumbnail" => nil,
+            "sales" => 1,
+            "revenue" => 100.0,
+            "visits" => 0,
+            "today" => 0,
+            "last_7" => 100,
+            "last_30" => 100,
+          },
+        ]
+      )
+
+      # Verify deleted product is not included even though it had highest sales
+      product_ids = presenter.creator_home_props[:sales].map { |s| s["id"] }
+      expect(product_ids).not_to include(deleted_product.unique_permalink)
+    end
+
     it "includes sorted interlaced activity items", :sidekiq_inline, :elasticsearch_wait_for_refresh do
       seller.update!(created_at: 60.days.ago)
       sales = [
