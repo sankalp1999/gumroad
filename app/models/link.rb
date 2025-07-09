@@ -1354,12 +1354,11 @@ class Link < ApplicationRecord
 
       preloaded_tags = tags.loaded? ? tags : tags.includes(:product_taggings)
       preloaded_prices =
-        if alive_prices.loaded? || prices.loaded?
-          # We have the records in memory ⇒ filter in Ruby
-          (alive_prices.loaded? ? alive_prices : prices.alive)
-            .select(&:is_buy?)
+        if prices.loaded?
+          # Records are already loaded – filter consistently in memory
+          prices.select(&:alive?).select(&:is_buy?)
         else
-          # Nothing preloaded ⇒ fetch with correct includes
+          # Fallback: hit the DB once and eager-load the link to avoid N+1s
           prices.alive.is_buy.includes(:link)
         end
       preloaded_variant_categories = variant_categories_alive.loaded? ? variant_categories_alive : variant_categories_alive.includes(alive_variants: [:variant_category])
