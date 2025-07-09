@@ -1353,7 +1353,15 @@ class Link < ApplicationRecord
       ppp_factors = purchasing_power_parity_enabled? ? options[:preloaded_ppp_factors] || PurchasingPowerParityService.new.get_all_countries_factors(user) : nil
 
       preloaded_tags = tags.loaded? ? tags : tags.includes(:product_taggings)
-      preloaded_prices = alive_prices.loaded? ? alive_prices.is_buy : prices.alive.is_buy.includes(:link)
+      preloaded_prices =
+        if alive_prices.loaded? || prices.loaded?
+          # We have the records in memory ⇒ filter in Ruby
+          (alive_prices.loaded? ? alive_prices : prices.alive)
+            .select(&:is_buy?)
+        else
+          # Nothing preloaded ⇒ fetch with correct includes
+          prices.alive.is_buy.includes(:link)
+        end
       preloaded_variant_categories = variant_categories_alive.loaded? ? variant_categories_alive : variant_categories_alive.includes(alive_variants: [:variant_category])
 
       json = super_as_json(only: keep).merge!(
