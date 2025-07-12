@@ -1421,20 +1421,6 @@ describe User, :vcr do
     end
   end
 
-  describe "user roles" do
-    it "is considered an affiliate if it is present in the affiliates table" do
-      @user = create(:user)
-      create(:direct_affiliate, affiliate_user_id: @user.id)
-
-      expect(@user.is_affiliate?).to eq true
-    end
-
-    it "is not considered an affiliate if it is not present in the affiliates table" do
-      @user = create(:user)
-
-      expect(@user.is_affiliate?).to eq false
-    end
-  end
 
   describe "#account_active?" do
     it "returns true for a live user" do

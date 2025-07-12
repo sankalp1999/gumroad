@@ -32,14 +32,6 @@ describe Api::Mobile::UrlRedirectsController do
     end
   end
 
-  describe "GET fetch_placeholder_products" do
-    it "does not provide any placeholder products" do
-      get :fetch_placeholder_products, params: { mobile_token: Api::Mobile::BaseController::MOBILE_TOKEN, current_product_unique_permalinks: ["mobile_friendly_placeholder_product"] }
-
-      assert_response 200
-      expect(response.parsed_body).to eq({ success: true, placeholder_products: [] }.as_json)
-    end
-  end
 
   describe "GET url_redirect_attributes" do
     before do

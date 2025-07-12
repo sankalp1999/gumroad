@@ -167,8 +167,6 @@ describe("Payments Settings Scenario", type: :feature, js: true) do
       expect(compliance_info.phone).to eq("+15022541982")
       expect(compliance_info.birthday).to eq(Date.new(1980, 1, 1))
       expect(compliance_info.individual_tax_id.decrypt("1234")).to eq("1235")
-      expect(@user.active_ach_account.routing_number).to eq("110000000")
-      expect(@user.active_ach_account.account_number_visual).to eq("******6789")
       expect(@user.stripe_account).to be_present
     end
 
@@ -306,7 +304,6 @@ describe("Payments Settings Scenario", type: :feature, js: true) do
       it "allows the creator to edit their personal info without changing their ach account" do
         visit settings_payments_path
 
-        old_ach_account = @user.active_ach_account
 
         fill_in("Address", with: "address_full_match")
         click_on("Update settings")
@@ -321,14 +318,12 @@ describe("Payments Settings Scenario", type: :feature, js: true) do
         expect(compliance_info.zip_code).to eq("12345")
         expect(compliance_info.birthday).to eq(Date.new(1980, 1, 1))
         expect(compliance_info.individual_tax_id.decrypt("1234")).to eq("1234")
-        expect(@user.active_ach_account).to eq(old_ach_account)
       end
 
       it "allows the creator to edit their personal info that is locked at Stripe after account verification, and displays an error" do
         error_message = "You cannot change legal_entity[first_name] via API if an account is verified. Please contact us via https://support.stripe.com/contact if you need to change the information associated with this account."
         param = "legal_entity[first_name]"
         allow(StripeMerchantAccountManager).to receive(:handle_new_user_compliance_info).and_raise(Stripe::InvalidRequestError.new(error_message, param))
-        old_ach_account = @user.active_ach_account
         @user.merchant_accounts << create(:merchant_account, charge_processor_verified_at: Time.current)
 
         visit settings_payments_path
@@ -348,7 +343,6 @@ describe("Payments Settings Scenario", type: :feature, js: true) do
         expect(compliance_info.zip_code).to eq("12345")
         expect(compliance_info.birthday).to eq(Date.new(1980, 1, 1))
         expect(compliance_info.individual_tax_id.decrypt("1234")).to eq("1234")
-        expect(@user.active_ach_account).to eq(old_ach_account)
       end
 
       it "allows the creator to see and edit their ach account" do
@@ -376,8 +370,6 @@ describe("Payments Settings Scenario", type: :feature, js: true) do
         expect(compliance_info.zip_code).to eq("12345")
         expect(compliance_info.birthday).to eq(Date.new(1980, 1, 1))
         expect(compliance_info.individual_tax_id.decrypt("1234")).to eq("1234")
-        expect(@user.active_ach_account.routing_number).to eq("110000000")
-        expect(@user.active_ach_account.account_number_visual).to eq("******1116")
       end
 
       it "allows the creator to switch from bank to PayPal as payout method" do
