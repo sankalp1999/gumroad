@@ -17,9 +17,6 @@ class Api::Mobile::UrlRedirectsController < Api::Mobile::BaseController
     render json: { success: true, product: @url_redirect.product_json_data, purchase_valid: }
   end
 
-  def fetch_placeholder_products
-    render json: { success: true, placeholder_products: [] }
-  end
 
   def stream
     m3u8_playlist_link = api_mobile_hls_playlist_url(@url_redirect.token,
