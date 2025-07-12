@@ -418,13 +418,6 @@ class User < ApplicationRecord
     PayoutProcessorType.all.any? { PayoutProcessorType.get(_1).has_valid_payout_info?(self) }
   end
 
-  def stripe_and_paypal_merchant_accounts_exist?
-    merchant_account(StripeChargeProcessor.charge_processor_id) && merchant_account(PaypalChargeProcessor.charge_processor_id)
-  end
-
-  def stripe_or_paypal_merchant_accounts_exist?
-    merchant_account(StripeChargeProcessor.charge_processor_id) || merchant_account(PaypalChargeProcessor.charge_processor_id)
-  end
 
   def stripe_connect_account
     merchant_accounts.alive.charge_processor_alive.stripe.find { |ma| ma.is_a_stripe_connect_account? }
@@ -559,9 +552,6 @@ class User < ApplicationRecord
     !links.exists? && purchases.successful.exists?
   end
 
-  def is_affiliate?
-    DirectAffiliate.exists?(affiliate_user_id: id)
-  end
 
   def account_active?
     alive? && !suspended?
@@ -669,12 +659,6 @@ class User < ApplicationRecord
     bank_accounts.alive.first
   end
 
-  def active_ach_account
-    bank_accounts.alive.where("type = ?", AchAccount.name).first
-  end
-
-  def dismissed_audience_callout?
-    Event.where(event_name: "audience_callout_dismissal", user_id: id).exists?
   end
 
   def has_workflows?
