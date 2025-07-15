@@ -131,6 +131,7 @@ export type Product = {
   discover_fee_per_thousand: number;
   shipping_destinations: ShippingDestination[];
   custom_domain: string;
+  reply_to_email: string;
   collaborating_user: Seller | null;
   rich_content: Page[];
   files: FileEntry[];

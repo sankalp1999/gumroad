@@ -57,6 +57,19 @@ export const ShareTab = () => {
                 Create Gum
               </NavigationButton>
             </div>
+            <fieldset>
+              <label htmlFor={`${id}-reply-to-email`}>Reply-to email</label>
+              <input
+                id={`${id}-reply-to-email`}
+                type="email"
+                value={product.reply_to_email}
+                onChange={(evt) => updateProduct({ reply_to_email: evt.target.value })}
+                placeholder="customer-support@example.com"
+              />
+              <p className="field-description">
+                This email will be used as the reply-to address for customer receipt emails
+              </p>
+            </fieldset>
           </section>
           <ProfileSectionsEditor
             sectionIds={product.section_ids}

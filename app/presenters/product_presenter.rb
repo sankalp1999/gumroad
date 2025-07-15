@@ -164,6 +164,7 @@ class ProductPresenter
         is_adult: product.is_adult,
         discover_fee_per_thousand: product.discover_fee_per_thousand,
         custom_domain: product.custom_domain&.domain || "",
+        reply_to_email: product.reply_to_email || "",
         free_trial_enabled: product.free_trial_enabled,
         free_trial_duration_amount: product.free_trial_duration_amount,
         free_trial_duration_unit: product.free_trial_duration_unit,
