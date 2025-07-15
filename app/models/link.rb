@@ -166,7 +166,6 @@ class Link < ApplicationRecord
   validates :unique_permalink, presence: true, uniqueness: { case_sensitive: false }, format: { with: /\A[a-zA-Z_]+\z/ }
   validates :custom_permalink, format: { with: /\A[a-zA-Z0-9_-]+\z/ }, uniqueness: { scope: :user_id, case_sensitive: false }, allow_nil: true, allow_blank: true
   validate :suggested_price_greater_than_price
-  validates :reply_to_email, format: { with: User::EMAIL_REGEX }, allow_nil: true, allow_blank: true
   validate :duration_multiple_of_price_options
   validate :custom_and_unique_permalink_uniqueness
   validate :custom_permalink_of_licensed_product, if: :custom_permalink_or_is_licensed_changed?

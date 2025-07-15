@@ -27,6 +27,7 @@ type Props = {
   user: {
     email: string | null;
     support_email: string | null;
+    reply_to_email: string | null;
     locale: string;
     timezone: string;
     currency_type: string;
@@ -36,6 +37,7 @@ type Props = {
     purchasing_power_parity_limit: number | null;
     purchasing_power_parity_payment_verification_disabled: boolean;
     products: { id: string; name: string }[];
+    products_with_custom_reply_to: { id: string; name: string; reply_to_email: string }[];
     purchasing_power_parity_excluded_product_ids: string[];
     enable_payment_email: boolean;
     enable_payment_push_notification: boolean;
@@ -66,9 +68,21 @@ const MainPage = (props: Props) => {
     ...props.user,
     email: props.user.email ?? "",
     support_email: props.user.support_email ?? "",
+    reply_to_email: props.user.reply_to_email ?? "",
     tax_id: null,
     purchasing_power_parity_excluded_product_ids: props.user.purchasing_power_parity_excluded_product_ids,
   });
+  
+  // State for managing product-specific reply-to emails
+  const [productReplyToEmails, setProductReplyToEmails] = React.useState<Record<string, string>>(
+    props.user.products_with_custom_reply_to.reduce((acc, product) => {
+      acc[product.id] = product.reply_to_email;
+      return acc;
+    }, {} as Record<string, string>)
+  );
+  const [selectedProductIds, setSelectedProductIds] = React.useState<string[]>(
+    props.user.products_with_custom_reply_to.map(p => p.id)
+  );
   const updateUserSettings = (settings: Partial<typeof userSettings>) =>
     setUserSettings((prev) => ({ ...prev, ...settings }));
 
@@ -115,7 +129,11 @@ const MainPage = (props: Props) => {
         url: Routes.settings_main_path(),
         method: "PUT",
         accept: "json",
-        data: { user: userSettings },
+        data: { 
+          user: userSettings,
+          product_reply_to_emails: productReplyToEmails,
+          product_reply_to_ids: selectedProductIds
+        },
       });
       const responseData = cast<{ success: true } | { success: false; error_message: string }>(await response.json());
       if (responseData.success) {
@@ -310,6 +328,76 @@ const MainPage = (props: Props) => {
               onChange={(e) => updateUserSettings({ support_email: e.target.value })}
             />
             <small>This email is listed on the receipt of every sale.</small>
+          </fieldset>
+          <fieldset>
+            <legend>
+              <label htmlFor={`${uid}-reply-to-email`}>Reply-to email</label>
+            </legend>
+            <input
+              type="email"
+              id={`${uid}-reply-to-email`}
+              value={userSettings.reply_to_email}
+              placeholder={props.user.email ?? ""}
+              disabled={props.is_form_disabled}
+              onChange={(e) => updateUserSettings({ reply_to_email: e.target.value })}
+            />
+            <small>Default reply-to address for customer receipt emails. Can be overridden per product.</small>
+          </fieldset>
+          <fieldset>
+            <legend>
+              <label htmlFor={`${uid}-product-reply-to`}>Product-specific reply-to emails</label>
+            </legend>
+            <div className="field-description">
+              <p>Select products to use custom reply-to email addresses.</p>
+            </div>
+            
+            <TagInput
+              inputId={`${uid}-product-reply-to`}
+              tagIds={selectedProductIds}
+              tagList={props.user.products.map(({ id, name }) => ({ id, label: name }))}
+              isDisabled={props.is_form_disabled}
+              onChangeTagIds={(productIds) => {
+                setSelectedProductIds(productIds);
+                // Remove emails for deselected products
+                const newEmails = { ...productReplyToEmails };
+                Object.keys(newEmails).forEach(id => {
+                  if (!productIds.includes(id as string)) {
+                    delete newEmails[id];
+                  }
+                });
+                setProductReplyToEmails(newEmails);
+              }}
+            />
+            
+            {selectedProductIds.length > 0 && (
+              <div style={{ marginTop: "1rem" }}>
+                {selectedProductIds.map((productId) => {
+                  const product = props.user.products.find(p => p.id === productId);
+                  if (!product) return null;
+                  
+                  return (
+                    <div key={productId} style={{ marginTop: "1rem" }}>
+                      <label htmlFor={`${uid}-reply-to-${productId}`} style={{ display: "block", marginBottom: "0.25rem" }}>
+                        {product.name}
+                      </label>
+                      <input
+                        type="email"
+                        id={`${uid}-reply-to-${productId}`}
+                        value={productReplyToEmails[productId] || ""}
+                        placeholder={userSettings.reply_to_email || props.user.email || ""}
+                        disabled={props.is_form_disabled}
+                        onChange={(e) => {
+                          setProductReplyToEmails({
+                            ...productReplyToEmails,
+                            [productId]: e.target.value
+                          });
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </fieldset>
         </section>
         {props.user.seller_refund_policy.enabled ? (

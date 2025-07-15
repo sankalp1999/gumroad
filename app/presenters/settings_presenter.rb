@@ -63,6 +63,7 @@ class SettingsPresenter
       user: {
         email: seller.form_email,
         support_email: seller.support_email,
+        reply_to_email: seller.reply_to_email,
         locale: seller.locale,
         timezone: seller.timezone,
         currency_type: seller.currency_type,
@@ -72,6 +73,9 @@ class SettingsPresenter
         purchasing_power_parity_limit: seller.purchasing_power_parity_limit,
         purchasing_power_parity_payment_verification_disabled: seller.purchasing_power_parity_payment_verification_disabled?,
         products: seller.products.visible.map { |product| { id: product.external_id, name: product.name } },
+        products_with_custom_reply_to: seller.products.visible.select { |p| p.reply_to_email.present? }.map do |product|
+          { id: product.external_id, name: product.name, reply_to_email: product.reply_to_email }
+        end,
         purchasing_power_parity_excluded_product_ids: seller.purchasing_power_parity_excluded_product_external_ids,
         enable_payment_email: seller.enable_payment_email,
         enable_payment_push_notification: seller.enable_payment_push_notification,

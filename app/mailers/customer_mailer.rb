@@ -38,9 +38,9 @@ class CustomerMailer < ApplicationMailer
     is_receipt_for_gift_receiver = receipt_for_gift_receiver?(@chargeable)
     @footer_template = "layouts/mailers/receipt_footer" unless is_receipt_for_gift_receiver
 
-    # Use product-specific reply-to email if available, otherwise fallback to seller's support email
+    # Use product-specific reply-to email if available, otherwise fallback to seller's reply-to email, then support email
     product = @chargeable.is_a?(Purchase) ? @chargeable.link : @chargeable.purchases.first&.link
-    reply_to_email = product&.reply_to_email.presence || @chargeable.seller.support_or_form_email
+    reply_to_email = product&.reply_to_email.presence || @chargeable.seller.reply_to_email.presence || @chargeable.seller.support_or_form_email
 
     mail(
       to: @chargeable.orderable.email,
@@ -77,7 +77,7 @@ class CustomerMailer < ApplicationMailer
     mail(
       to: email,
       from: from_email_address_with_name(@product.user.name, "noreply@#{CUSTOMERS_MAIL_DOMAIN}"),
-      reply_to: @product.reply_to_email.presence || @product.user.support_or_form_email,
+      reply_to: @product.reply_to_email.presence || @product.user.reply_to_email.presence || @product.user.support_or_form_email,
       subject: "You pre-ordered #{@product.name}!",
       delivery_method_options: MailerInfo.random_delivery_method_options(domain: :customers, seller: @product.user)
     )
@@ -89,7 +89,7 @@ class CustomerMailer < ApplicationMailer
     mail(
       to: email,
       from: from_email_address_with_name(@product.user.name, "noreply@#{CUSTOMERS_MAIL_DOMAIN}"),
-      reply_to: @product.reply_to_email.presence || @product.user.support_or_form_email,
+      reply_to: @product.reply_to_email.presence || @product.user.reply_to_email.presence || @product.user.support_or_form_email,
       subject: "You have been refunded.",
       delivery_method_options: MailerInfo.random_delivery_method_options(domain: :customers, seller: @product.user)
     )
@@ -104,7 +104,7 @@ class CustomerMailer < ApplicationMailer
     mail(
       to: email,
       from: from_email_address_with_name(@product.user.name, "noreply@#{CUSTOMERS_MAIL_DOMAIN}"),
-      reply_to: @product.reply_to_email.presence || from_email_address_with_name(@product.user.name, @product.user.email),
+      reply_to: @product.reply_to_email.presence || @product.user.reply_to_email.presence || from_email_address_with_name(@product.user.name, @product.user.email),
       subject: "You have been #{@refund_type} refunded.",
       delivery_method_options: MailerInfo.random_delivery_method_options(domain: :customers, seller: @product.user)
     )
