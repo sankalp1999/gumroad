@@ -75,10 +75,7 @@ class Admin::BaseController < ApplicationController
     end
 
     def request_from_iffy?
-      return false unless params[:auth_token].present?
-      iffy_token = GlobalConfig.get("IFFY_TOKEN")
-      return false unless iffy_token.present?
-      ActiveSupport::SecurityUtils.secure_compare(params[:auth_token].to_s, iffy_token)
+      ActiveSupport::SecurityUtils.secure_compare(params[:auth_token].to_s, GlobalConfig.get("IFFY_TOKEN"))
     end
 
     def require_admin!
