@@ -3,7 +3,7 @@
 class AdminSearchService
   class InvalidDateError < StandardError; end
 
-  def search_purchases(query: nil, creator_email: nil, license_key: nil, transaction_date: nil, last_4: nil, card_type: nil, price: nil, expiry_date: nil, limit: nil)
+  def search_purchases(query: nil, creator_email: nil, license_key: nil, transaction_date: nil, last_4: nil, card_type: nil, price: nil, expiry_date: nil, limit: nil, product_title: nil)
     purchases = Purchase.order(created_at: :desc)
 
     if query.present?
@@ -20,7 +20,7 @@ class AdminSearchService
           #{ unions.map { |u| "(#{u})" }.join(" UNION ") }
         ) via_gifts_and_purchases
       SQL
-      purchases = purchases.where("id IN (#{union_sql})")
+      purchases = purchases.where("purchases.id IN (#{union_sql})")
     end
 
     if creator_email.present?
@@ -52,6 +52,10 @@ class AdminSearchService
         purchases = purchases.where(card_expiry_year: "20#{expiry_year}") if expiry_year.present?
         purchases = purchases.where(card_expiry_month: expiry_month) if expiry_month.present?
       end
+    end
+
+    if product_title.present?
+      purchases = purchases.joins(:link).where("LOWER(links.name) LIKE LOWER(?)", "%#{product_title}%")
     end
 
     purchases.limit(limit)

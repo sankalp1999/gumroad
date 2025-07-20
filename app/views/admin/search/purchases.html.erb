@@ -1,6 +1,23 @@
 <%= load_pack("admin_review") %>
 
 <% if @purchases&.exists? %>
+  <div class="paragraphs">
+    <%= form_with url: admin_search_purchases_path, method: :get, local: true, class: "form-inline" do |f| %>
+      <%= hidden_field_tag :query, params[:query] %>
+      <div class="input-with-button">
+        <div class="input">
+          <%= f.text_field :product_title, value: params[:product_title], 
+              placeholder: "Filter by product title...", 
+              class: "form-control" %>
+        </div>
+        <%= f.submit "Filter", class: "button primary" %>
+        <% if params[:product_title].present? %>
+          <%= link_to "Clear filter", admin_search_purchases_path(query: params[:query]), class: "button" %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+  
   <%= render("purchases", purchases: @purchases) %>
 <% else %>
   <%= render("admin/empty_state", message: "No purchases found.") %>
