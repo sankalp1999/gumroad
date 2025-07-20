@@ -56,7 +56,7 @@ describe Admin::SearchController do
       purchase_2 = create(:gift, gifter_email: email, gifter_purchase: create(:purchase)).gifter_purchase
       purchase_3 = create(:gift, giftee_email: email, giftee_purchase: create(:purchase)).giftee_purchase
 
-      expect_any_instance_of(AdminSearchService).to receive(:search_purchases).with(query: email).and_call_original
+      expect_any_instance_of(AdminSearchService).to receive(:search_purchases).with(query: email, product_title: nil).and_call_original
       get :purchases, params: { query: email }
 
       assert_response :success
