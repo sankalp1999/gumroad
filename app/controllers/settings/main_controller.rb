@@ -12,17 +12,7 @@ class Settings::MainController < Sellers::BaseController
 
   def update
     begin
-      filtered_params = user_params.except(
-        :seller_refund_policy,
-        :purchasing_power_parity_excluded_product_ids,
-        :products,
-        :products_with_custom_reply_to,
-        :has_unconfirmed_email,
-        :compliance_country,
-        :tax_id
-      )
-
-      current_seller.with_lock { current_seller.update!(filtered_params) }
+      current_seller.with_lock { current_seller.update!(user_params.except(:seller_refund_policy)) }
     rescue ActiveRecord::RecordInvalid => e
       return render json: { success: false, error_message: e.record.errors.full_messages.to_sentence }
     rescue StandardError => e
