@@ -346,6 +346,43 @@ form {
 .combobox {
   position: relative;
 
+  // Ensure react-select control has consistent background with other inputs
+  .react-select__control {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    min-height: auto;
+  }
+
+  .react-select__value-container {
+    padding: 0;
+  }
+
+  .react-select__multi-value {
+    background-color: transparent;
+    margin: 0;
+  }
+
+  .react-select__multi-value__remove {
+    display: none;
+  }
+
+  .react-select__indicators {
+    display: none;
+  }
+
+  // Let the .input class handle the background naturally
+  .input {
+    // Remove any react-select background overrides
+    .react-select__control,
+    .react-select__multi-value,
+    .react-select__value-container,
+    .react-select__placeholder,
+    .react-select__input-container {
+      background: transparent !important;
+    }
+  }
+
   input[aria-expanded="true"],
   .input:has(input[aria-expanded="true"]) {
     border-bottom-left-radius: 0;

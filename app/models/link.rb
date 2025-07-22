@@ -197,6 +197,7 @@ class Link < ApplicationRecord
   validate :quantity_enabled_state_is_allowed
   validate :validate_daily_product_creation_limit, on: :create
   validates_associated :installment_plan, message: -> (link, _) { link.installment_plan.errors.full_messages.first }
+  validates_format_of :reply_to_email, with: User::EMAIL_REGEX, allow_blank: true
 
   before_save :downcase_filetype
   before_save :remove_xml_tags
@@ -215,6 +216,7 @@ class Link < ApplicationRecord
   attr_json_data_accessor :excluded_sales_tax_regions, default: -> { [] }
   attr_json_data_accessor :sections, default: -> { [] }
   attr_json_data_accessor :main_section_index, default: -> { 0 }
+  attr_json_data_accessor :reply_to_email
 
   scope :alive,                           -> { where(purchase_disabled_at: nil, banned_at: nil, deleted_at: nil) }
   scope :visible,                         -> { where(deleted_at: nil) }
@@ -374,6 +376,10 @@ class Link < ApplicationRecord
 
   def buyable?
     buy_only? || buy_and_rent?
+  end
+
+  def effective_reply_to_email
+    reply_to_email.presence || user.reply_to_email.presence || user.support_or_form_email
   end
 
   def delete!
@@ -1454,6 +1460,7 @@ class Link < ApplicationRecord
         errors.add(:base, "Sorry, you can only create 100 products per day.")
       end
     end
+
 
     def custom_permalink_or_is_licensed_changed?
       custom_permalink_changed? || is_licensed_changed?

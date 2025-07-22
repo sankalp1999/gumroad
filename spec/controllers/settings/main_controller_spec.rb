@@ -32,7 +32,10 @@ describe Settings::MainController do
 
   describe "PUT update" do
     let (:user_params) do
-      { seller_refund_policy: { max_refund_period_in_days: "30", fine_print: nil } }
+      { 
+        email: seller.email,
+        seller_refund_policy: { max_refund_period_in_days: "30", fine_print: nil } 
+      }
     end
 
     it "submits the form successfully" do
@@ -42,7 +45,7 @@ describe Settings::MainController do
     end
 
     it "returns error message when StandardError is raised" do
-      allow_any_instance_of(User).to receive(:update).and_raise(StandardError)
+      allow_any_instance_of(User).to receive(:update!).and_raise(StandardError)
       put :update, params: { user: user_params.merge(email: "hello@example.com") }, format: :json
       expect(response.parsed_body["success"]).to be(false)
       expect(response.parsed_body["error_message"]).to eq("Something broke. We're looking into what happened. Sorry about this!")
@@ -297,6 +300,100 @@ describe Settings::MainController do
           expect(seller.refund_policy.reload.max_refund_period_in_days).to eq(0)
           expect(seller.refund_policy.fine_print).to be_nil
         end
+      end
+    end
+
+    describe "product reply-to emails" do
+      let!(:product1) { create(:product, user: seller, name: "Product 1") }
+      let!(:product2) { create(:product, user: seller, name: "Product 2") }
+      let!(:product3) { create(:product, user: seller, name: "Product 3") }
+
+      it "sets reply-to emails for selected products" do
+        product_emails = {
+          product1.external_id => "support1@example.com",
+          product2.external_id => "support2@example.com"
+        }
+        selected_ids = [product1.external_id, product2.external_id]
+
+        put :update, params: { 
+          user: user_params,
+          product_reply_to_emails: product_emails,
+          product_reply_to_ids: selected_ids
+        }, format: :json
+
+        expect(response.parsed_body["success"]).to be(true)
+        expect(product1.reload.reply_to_email).to eq("support1@example.com")
+        expect(product2.reload.reply_to_email).to eq("support2@example.com")
+        expect(product3.reload.reply_to_email).to be_nil
+      end
+
+      it "clears reply-to email when product is deselected" do
+        product1.update!(reply_to_email: "old@example.com")
+        product2.update!(reply_to_email: "old2@example.com")
+
+        put :update, params: { 
+          user: user_params,
+          product_reply_to_emails: { product2.external_id => "new@example.com" },
+          product_reply_to_ids: [product2.external_id]
+        }, format: :json
+
+        expect(response.parsed_body["success"]).to be(true)
+        expect(product1.reload.reply_to_email).to be_nil
+        expect(product2.reload.reply_to_email).to eq("new@example.com")
+      end
+
+      it "handles errors gracefully when updating product emails fails" do
+        allow_any_instance_of(Link).to receive(:update!).and_raise(StandardError, "Update failed")
+
+        put :update, params: { 
+          user: user_params,
+          product_reply_to_emails: { product1.external_id => "test@example.com" },
+          product_reply_to_ids: [product1.external_id]
+        }, format: :json
+
+        expect(response.parsed_body["success"]).to be(false)
+        expect(response.parsed_body["error_message"]).to eq("Failed to update product reply-to emails. Please try again.")
+      end
+
+      it "validates email format for product reply-to emails" do
+        allow_any_instance_of(Link).to receive(:update!).and_raise(ActiveRecord::RecordInvalid.new(product1))
+        allow(product1).to receive_message_chain(:errors, :full_messages).and_return(["Reply to email is invalid"])
+
+        put :update, params: { 
+          user: user_params,
+          product_reply_to_emails: { product1.external_id => "invalid-email" },
+          product_reply_to_ids: [product1.external_id]
+        }, format: :json
+
+        expect(response.parsed_body["success"]).to be(false)
+        expect(response.parsed_body["error_message"]).to include("Failed to update product reply-to emails")
+      end
+
+      it "updates seller-level reply-to email" do
+        put :update, params: { user: user_params.merge(reply_to_email: "global@example.com") }, format: :json
+
+        expect(response.parsed_body["success"]).to be(true)
+        expect(seller.reload.reply_to_email).to eq("global@example.com")
+      end
+
+      it "allows duplicate reply-to emails across products" do
+        product_emails = {
+          product1.external_id => "shared@example.com",
+          product2.external_id => "shared@example.com"
+        }
+        selected_ids = [product1.external_id, product2.external_id]
+
+        put :update, params: { 
+          user: user_params,
+          product_reply_to_emails: product_emails,
+          product_reply_to_ids: selected_ids
+        }, format: :json
+
+        expect(response.parsed_body["success"]).to be(true)
+        product1.reload
+        product2.reload
+        expect(product1.reply_to_email).to eq("shared@example.com")
+        expect(product2.reply_to_email).to eq("shared@example.com")
       end
     end
   end

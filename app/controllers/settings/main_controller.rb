@@ -12,7 +12,20 @@ class Settings::MainController < Sellers::BaseController
 
   def update
     begin
-      current_seller.with_lock { current_seller.update(user_params.except(:seller_refund_policy)) }
+      # Filter out parameters that aren't user attributes
+      filtered_params = user_params.except(
+        :seller_refund_policy,
+        :purchasing_power_parity_excluded_product_ids,
+        :products,
+        :products_with_custom_reply_to,
+        :has_unconfirmed_email,
+        :compliance_country,
+        :tax_id
+      )
+
+      current_seller.with_lock { current_seller.update!(filtered_params) }
+    rescue ActiveRecord::RecordInvalid => e
+      return render json: { success: false, error_message: e.record.errors.full_messages.to_sentence }
     rescue StandardError => e
       Bugsnag.notify(e)
       return render json: { success: false, error_message: "Something broke. We're looking into what happened. Sorry about this!" }
@@ -31,6 +44,22 @@ class Settings::MainController < Sellers::BaseController
 
     if current_seller.save
       current_seller.update_purchasing_power_parity_excluded_products!(params[:user][:purchasing_power_parity_excluded_product_ids])
+
+      # Update product-specific reply-to emails
+      # Always call this method to handle both adding and removing reply-to emails
+      if params.has_key?(:product_reply_to_emails) || params.has_key?(:product_reply_to_ids)
+        begin
+          update_product_reply_to_emails!
+        rescue StandardError => e
+          # If it's our specific validation error, return the custom message
+          if e.message.include?("cannot be used for multiple products")
+            return render json: { success: false, error_message: e.message }
+          end
+          
+          Bugsnag.notify(e)
+          return render json: { success: false, error_message: "Failed to update product reply-to emails. Please try again." }
+        end
+      end
 
       render json: { success: true }
     else
@@ -60,6 +89,7 @@ class Settings::MainController < Sellers::BaseController
         :disable_comments_email,
         :disable_reviews_email,
         :support_email,
+        :reply_to_email,
         :locale,
         :timezone,
         :currency_type,
@@ -74,7 +104,13 @@ class Settings::MainController < Sellers::BaseController
     end
 
     def seller_refund_policy_params
-      params[:user][:seller_refund_policy]&.permit(:max_refund_period_in_days, :fine_print)
+      params[:user][:seller_refund_policy]&.permit(
+        :enabled,
+        :max_refund_period_in_days,
+        :fine_print,
+        :fine_print_enabled,
+        allowed_refund_periods_in_days: [:key, :value]
+      )
     end
 
     def fetch_discover_sales(seller)
@@ -86,6 +122,43 @@ class Settings::MainController < Sellers::BaseController
         exclude_bundle_product_purchases: true,
         aggs: { price_cents_total: { sum: { field: "price_cents" } } }
       ).aggregations["price_cents_total"]["value"]
+    end
+
+    def update_product_reply_to_emails!
+      # Handle dynamic hash keys for product emails
+      product_emails = params[:product_reply_to_emails]&.to_unsafe_h || {}
+      selected_ids = params[:product_reply_to_ids] || []
+      
+      # Ensure selected_ids is an array
+      selected_ids = Array(selected_ids)
+      
+      # No longer check for duplicate reply-to emails
+      # Multiple products can now share the same reply-to email
+
+      # Wrap in transaction for atomicity
+      ActiveRecord::Base.transaction do
+        # First, clear all existing reply-to emails for products not in the selected list
+        current_seller.products.visible.each do |product|
+          if !selected_ids.include?(product.external_id) && product.reply_to_email.present?
+            product.update!(reply_to_email: nil)
+          end
+        end
+        
+        # Then, update reply-to emails for selected products
+        selected_ids.each do |product_id|
+          product = current_seller.products.visible.find { |p| p.external_id == product_id }
+          next unless product
+          
+          reply_to = product_emails[product_id]
+          # Convert empty strings to nil for consistency
+          reply_to = nil if reply_to.blank?
+          
+          # Only update if the value has changed
+          if reply_to != product.reply_to_email
+            product.update!(reply_to_email: reply_to)
+          end
+        end
+      end
     end
 
     def authorize

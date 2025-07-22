@@ -8,6 +8,7 @@ import { ResponseError, request, assertResponseError } from "$app/utils/request"
 import { register } from "$app/utils/serverComponentUtil";
 
 import { Button } from "$app/components/Button";
+import { Icon } from "$app/components/Icons";
 import { Modal } from "$app/components/Modal";
 import { NumberInput } from "$app/components/NumberInput";
 import { showAlert } from "$app/components/server-components/Alert";
@@ -15,6 +16,7 @@ import { ToggleSettingRow } from "$app/components/SettingRow";
 import { Layout } from "$app/components/Settings/Layout";
 import { TagInput } from "$app/components/TagInput";
 import { Toggle } from "$app/components/Toggle";
+import { WithTooltip } from "$app/components/WithTooltip";
 
 type Props = {
   settings_pages: SettingPage[];
@@ -27,6 +29,7 @@ type Props = {
   user: {
     email: string | null;
     support_email: string | null;
+    reply_to_email: string | null;
     locale: string;
     timezone: string;
     currency_type: string;
@@ -36,6 +39,7 @@ type Props = {
     purchasing_power_parity_limit: number | null;
     purchasing_power_parity_payment_verification_disabled: boolean;
     products: { id: string; name: string }[];
+    products_with_custom_reply_to: { id: string; name: string; reply_to_email: string }[];
     purchasing_power_parity_excluded_product_ids: string[];
     enable_payment_email: boolean;
     enable_payment_push_notification: boolean;
@@ -66,8 +70,42 @@ const MainPage = (props: Props) => {
     ...props.user,
     email: props.user.email ?? "",
     support_email: props.user.support_email ?? "",
+    reply_to_email: props.user.reply_to_email ?? "",
     tax_id: null,
     purchasing_power_parity_excluded_product_ids: props.user.purchasing_power_parity_excluded_product_ids,
+  });
+  
+  // State for managing product-specific reply-to emails
+  const [productReplyToGroups, setProductReplyToGroups] = React.useState<Array<{
+    id: string;
+    email: string;
+    selectedProductIds: string[];
+    isExpanded: boolean;
+  }>>(() => {
+    
+    if (props.user.products_with_custom_reply_to.length > 0) {
+      // Group products by their reply-to email
+      const emailToProducts = new Map<string, string[]>();
+      
+      props.user.products_with_custom_reply_to.forEach((product) => {
+        const email = product.reply_to_email || "";
+        if (!emailToProducts.has(email)) {
+          emailToProducts.set(email, []);
+        }
+        emailToProducts.get(email)!.push(product.id);
+      });
+      
+      // Create groups from the email mapping
+      const groups = Array.from(emailToProducts.entries()).map(([email, productIds], index) => ({
+        id: `initial-group-${index}`,
+        email: email,
+        selectedProductIds: productIds,
+        isExpanded: false // Start collapsed for existing groups
+      }));
+      
+      return groups;
+    }
+    return [];
   });
   const updateUserSettings = (settings: Partial<typeof userSettings>) =>
     setUserSettings((prev) => ({ ...prev, ...settings }));
@@ -76,6 +114,9 @@ const MainPage = (props: Props) => {
   const [resentConfirmationEmail, setResentConfirmationEmail] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
   const emailInputRef = React.useRef<HTMLInputElement>(null);
+  
+  // Track validation errors for each group
+  const [groupErrors, setGroupErrors] = React.useState<Record<string, string>>({});
 
   const resendConfirmationEmail = async () => {
     setIsResendingConfirmationEmail(true);
@@ -108,14 +149,54 @@ const MainPage = (props: Props) => {
       return;
     }
 
+    // Validate product groups
+    const newGroupErrors: Record<string, string> = {};
+    let hasErrors = false;
+    
+    productReplyToGroups.forEach(group => {
+      if (group.selectedProductIds.length > 0 && !group.email) {
+        newGroupErrors[group.id] = "Please enter an email address for selected products";
+        hasErrors = true;
+      }
+    });
+    
+    setGroupErrors(newGroupErrors);
+    
+    if (hasErrors) {
+      // Auto-expand groups with errors
+      setProductReplyToGroups(groups => 
+        groups.map(g => ({
+          ...g,
+          isExpanded: g.isExpanded || !!newGroupErrors[g.id]
+        }))
+      );
+      showAlert("Please fix the errors before saving", "error");
+      return;
+    }
+
     setIsSaving(true);
 
     try {
+      // Prepare product reply-to data from groups
+      const productReplyToEmails: Record<string, string> = {};
+      const productReplyToIds: string[] = [];
+      
+      productReplyToGroups.forEach(group => {
+        group.selectedProductIds.forEach(productId => {
+          productReplyToEmails[productId] = group.email;
+          productReplyToIds.push(productId);
+        });
+      });
+
       const response = await request({
         url: Routes.settings_main_path(),
         method: "PUT",
         accept: "json",
-        data: { user: userSettings },
+        data: { 
+          user: userSettings,
+          product_reply_to_emails: productReplyToEmails,
+          product_reply_to_ids: productReplyToIds
+        },
       });
       const responseData = cast<{ success: true } | { success: false; error_message: string }>(await response.json());
       if (responseData.success) {
@@ -311,6 +392,209 @@ const MainPage = (props: Props) => {
             />
             <small>This email is listed on the receipt of every sale.</small>
           </fieldset>
+          <fieldset>
+            <legend>
+              <label htmlFor={`${uid}-reply-to-email`}>Reply-to email</label>
+            </legend>
+            <input
+              type="email"
+              id={`${uid}-reply-to-email`}
+              value={userSettings.reply_to_email}
+              placeholder={props.user.email ?? ""}
+              disabled={props.is_form_disabled}
+              onChange={(e) => updateUserSettings({ reply_to_email: e.target.value })}
+            />
+            <small>Default reply-to address for customer receipt emails. Can be overridden per product.</small>
+          </fieldset>
+        </section>
+        <section>
+          <header>
+            <h2>Product-specific reply-to emails</h2>
+            <div>Select products to use custom reply-to email addresses.</div>
+          </header>
+          {productReplyToGroups.length > 0 ? (
+            <>
+              {productReplyToGroups.map((group, index) => (
+                <div key={group.id} style={{ 
+                  border: "solid var(--border-width) rgb(var(--parent-color) / var(--border-alpha))", 
+                  padding: "16px",
+                  marginBottom: "16px",
+                  backgroundColor: "rgb(var(--filled))"
+                }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <Icon name="envelope-fill" />
+                  <span style={{ fontWeight: "500" }}>
+                    {group.email || "No email set"}
+                  </span>
+                  <span style={{ color: "#6b7280", fontSize: "14px" }}>
+                    {group.selectedProductIds.length === 0 
+                      ? "No products selected"
+                      : (() => {
+                          const productNames = group.selectedProductIds
+                            .map(id => props.user.products.find(p => p.id === id)?.name)
+                            .filter(Boolean);
+                          
+                          if (productNames.length === 0) return "No products";
+                          if (productNames.length === 1) return productNames[0];
+                          if (productNames.length === 2) return productNames.join(" and ");
+                          
+                          // For 3 or more products, show "Product1, Product2, and X more"
+                          const displayNames = productNames.slice(0, 2);
+                          const remainingCount = productNames.length - 2;
+                          return `${displayNames.join(", ")} and ${remainingCount} more`;
+                        })()
+                    }
+                  </span>
+                  {groupErrors[group.id] && (
+                    <span style={{ color: "#ef4444", fontSize: "14px" }}>
+                      • Error
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <Button
+                    onClick={() => {
+                      const newGroups = [...productReplyToGroups];
+                      if (newGroups[index]) {
+                        newGroups[index].isExpanded = !newGroups[index].isExpanded;
+                        setProductReplyToGroups(newGroups);
+                      }
+                    }}
+                    disabled={props.is_form_disabled}
+                    aria-label={group.isExpanded ? "Collapse" : "Expand"}
+                  >
+                    <Icon name={group.isExpanded ? "outline-cheveron-up" : "outline-cheveron-down"} />
+                  </Button>
+                  <WithTooltip tip="Remove">
+                    <Button
+                      onClick={() => {
+                        setProductReplyToGroups(productReplyToGroups.filter(g => g.id !== group.id));
+                      }}
+                      aria-label="Remove email group"
+                      disabled={props.is_form_disabled}
+                    >
+                      <Icon name="trash2" />
+                    </Button>
+                  </WithTooltip>
+                </div>
+              </div>
+              
+              {group.isExpanded && (
+                <div>
+                  <fieldset style={{ marginBottom: "16px" }}>
+                    <legend>
+                      <label htmlFor={`${uid}-group-email-${index}`}>Email</label>
+                    </legend>
+                    <input
+                      type="email"
+                      id={`${uid}-group-email-${index}`}
+                      value={group.email}
+                      placeholder={userSettings.reply_to_email || props.user.email || ""}
+                      disabled={props.is_form_disabled}
+                      onChange={(e) => {
+                        const newGroups = [...productReplyToGroups];
+                        if (newGroups[index]) {
+                          newGroups[index].email = e.target.value;
+                          setProductReplyToGroups(newGroups);
+                          // Clear error when user types
+                          if (groupErrors[group.id]) {
+                            setGroupErrors(prev => {
+                              const newErrors = { ...prev };
+                              delete newErrors[group.id];
+                              return newErrors;
+                            });
+                          }
+                        }
+                      }}
+                    />
+                    <small>This reply-to email will appear on receipts for selected products.</small>
+                    {groupErrors[group.id] && (
+                      <small style={{ color: "#ef4444", display: "block", marginTop: "4px" }}>
+                        {groupErrors[group.id]}
+                      </small>
+                    )}
+                  </fieldset>
+                  
+                  <fieldset>
+                    <legend>
+                      <label htmlFor={`${uid}-group-products-${index}`}>Products</label>
+                    </legend>
+                    <TagInput
+                      inputId={`${uid}-group-products-${index}`}
+                      tagIds={group.selectedProductIds}
+                      tagList={props.user.products
+                        .filter(product => {
+                          // Include product if it's already selected in this group
+                          if (group.selectedProductIds.includes(product.id)) {
+                            return true;
+                          }
+                          // Exclude product if it's selected in any other group
+                          const isSelectedElsewhere = productReplyToGroups.some((otherGroup, otherIndex) => 
+                            otherIndex !== index && otherGroup.selectedProductIds.includes(product.id)
+                          );
+                          return !isSelectedElsewhere;
+                        })
+                        .map(({ id, name }) => ({ id, label: name }))}
+                      isDisabled={props.is_form_disabled}
+                      onChangeTagIds={(productIds) => {
+                        const newGroups = [...productReplyToGroups];
+                        if (newGroups[index]) {
+                          newGroups[index].selectedProductIds = productIds;
+                          setProductReplyToGroups(newGroups);
+                        }
+                      }}
+                    />
+                    <small>Multiple products can share the same reply-to email</small>
+                  </fieldset>
+                </div>
+              )}
+            </div>
+              ))}
+              <Button
+                color="primary"
+                onClick={() => {
+                  const newGroupId = `group-${Date.now()}`;
+                  setProductReplyToGroups([
+                    ...productReplyToGroups,
+                    {
+                      id: newGroupId,
+                      email: "",
+                      selectedProductIds: [],
+                      isExpanded: true
+                    }
+                  ]);
+                }}
+                disabled={props.is_form_disabled}
+              >
+                <Icon name="plus" />
+                Add a product specific email
+              </Button>
+            </>
+          ) : (
+            <div className="placeholder">
+              <Button
+                color="primary"
+                onClick={() => {
+                  const newGroupId = `group-${Date.now()}`;
+                  setProductReplyToGroups([
+                    ...productReplyToGroups,
+                    {
+                      id: newGroupId,
+                      email: "",
+                      selectedProductIds: [],
+                      isExpanded: true
+                    }
+                  ]);
+                }}
+                disabled={props.is_form_disabled}
+              >
+                <Icon name="plus" />
+                Add a product specific email
+              </Button>
+              <div>Use a different reply-to email for specific products.</div>
+            </div>
+          )}
         </section>
         {props.user.seller_refund_policy.enabled ? (
           <section>

@@ -150,6 +150,7 @@ class User < ApplicationRecord
   attr_json_data_accessor :gumroad_day_timezone
   attr_json_data_accessor :payout_threshold_cents, default: -> { minimum_payout_threshold_cents }
   attr_json_data_accessor :payout_frequency, default: User::PayoutSchedule::WEEKLY
+  attr_json_data_accessor :reply_to_email
 
   validates :username, uniqueness: { case_sensitive: true },
                        length: { minimum: 3, maximum: 20 },
@@ -170,6 +171,7 @@ class User < ApplicationRecord
   validates_format_of :email, with: EMAIL_REGEX, allow_blank: true, if: :email_changed?
   validates_format_of :kindle_email, with: KINDLE_EMAIL_REGEX, allow_blank: true, if: :kindle_email_changed?
   validates_format_of :support_email, with: EMAIL_REGEX, allow_blank: true, if: :support_email_changed?
+  validates_format_of :reply_to_email, with: EMAIL_REGEX, allow_blank: true
   validate :google_analytics_id_valid
   validate :avatar_is_valid
   validate :payout_frequency_is_valid
