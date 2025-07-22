@@ -100,13 +100,7 @@ class Settings::MainController < Sellers::BaseController
     end
 
     def seller_refund_policy_params
-      params[:user][:seller_refund_policy]&.permit(
-        :enabled,
-        :max_refund_period_in_days,
-        :fine_print,
-        :fine_print_enabled,
-        allowed_refund_periods_in_days: [:key, :value]
-      )
+      params[:user][:seller_refund_policy]&.permit(:max_refund_period_in_days, :fine_print)
     end
 
     def fetch_discover_sales(seller)
