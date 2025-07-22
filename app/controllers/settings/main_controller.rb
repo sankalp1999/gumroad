@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'set'
+
 class Settings::MainController < Sellers::BaseController
   include ActiveSupport::NumberHelper
 
@@ -36,7 +38,7 @@ class Settings::MainController < Sellers::BaseController
 
       if params.has_key?(:product_reply_to_emails) || params.has_key?(:product_reply_to_ids)
         begin
-          update_product_reply_to_emails!
+          sync_product_reply_to_emails_with_selection!
         rescue StandardError => e
           if e.message.include?("cannot be used for multiple products")
             return render json: { success: false, error_message: e.message }
@@ -104,30 +106,14 @@ class Settings::MainController < Sellers::BaseController
       ).aggregations["price_cents_total"]["value"]
     end
 
-    def update_product_reply_to_emails!
+    def sync_product_reply_to_emails_with_selection!
       product_emails = params[:product_reply_to_emails]&.to_unsafe_h || {}
-      selected_ids = params[:product_reply_to_ids] || []
-      
-      selected_ids = Array(selected_ids)
+      selected_ids = Set.new(Array(params[:product_reply_to_ids] || []))
 
-      # Wrap in transaction for atomicity
       ActiveRecord::Base.transaction do
-        current_seller.products.visible.each do |product|
-          if !selected_ids.include?(product.external_id) && product.reply_to_email.present?
-            product.update!(reply_to_email: nil)
-          end
-        end
-        
-        selected_ids.each do |product_id|
-          product = current_seller.products.visible.find { |p| p.external_id == product_id }
-          next unless product
-          
-          reply_to = product_emails[product_id]
-          reply_to = nil if reply_to.blank?
-          
-          if reply_to != product.reply_to_email
-            product.update!(reply_to_email: reply_to)
-          end
+        current_seller.products.visible.find_each do |product|
+          new_email = selected_ids.include?(product.external_id) ? product_emails[product.external_id].presence : nil
+          product.update!(reply_to_email: new_email) if product.reply_to_email != new_email
         end
       end
     end
