@@ -393,12 +393,6 @@ const MainPage = (props: Props) => {
             />
             <small>Default reply-to address for customer receipt emails. Can be overridden per product.</small>
           </fieldset>
-        </section>
-        <section>
-          <header>
-            <h2>Product-specific reply-to emails</h2>
-            <div>Select products to use custom reply-to email addresses.</div>
-          </header>
           {productReplyToGroups.length > 0 ? (
             <>
               {productReplyToGroups.map((group, index) => (
