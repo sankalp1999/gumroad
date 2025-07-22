@@ -3,7 +3,6 @@ import { cast } from "ts-safe-cast";
 
 import { startTrackingForGumroad } from "$app/data/google_analytics";
 import { defaults as requestDefaults } from "$app/utils/request";
-import "../utils/suppressHelperWidgetErrors";
 
 import Alert from "$app/components/server-components/Alert";
 import Nav from "$app/components/server-components/Nav";
