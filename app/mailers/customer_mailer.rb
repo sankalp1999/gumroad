@@ -38,7 +38,6 @@ class CustomerMailer < ApplicationMailer
     is_receipt_for_gift_receiver = receipt_for_gift_receiver?(@chargeable)
     @footer_template = "layouts/mailers/receipt_footer" unless is_receipt_for_gift_receiver
 
-    # Use product-specific reply-to email if available, otherwise fallback to seller's reply-to email, then support email
     product = @chargeable.is_a?(Purchase) ? @chargeable.link : @chargeable.purchases.first&.link
     reply_to_email = product&.effective_reply_to_email || @chargeable.seller.support_or_form_email
 

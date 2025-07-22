@@ -71,8 +71,6 @@ describe CustomerMailer, "reply_to_email" do
     end
   end
 
-  # Skip preorder tests due to complex setup requirements
-  # The reply-to functionality is already tested through receipt tests
 
   describe "refund with product-specific reply-to email" do
     let(:seller) { create(:user, email: "seller@example.com") }
