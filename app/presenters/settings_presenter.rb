@@ -74,7 +74,6 @@ class SettingsPresenter
         purchasing_power_parity_payment_verification_disabled: seller.purchasing_power_parity_payment_verification_disabled?,
         products: seller.products.visible.map { |product| { id: product.external_id, name: product.name } },
         products_with_custom_reply_to: seller.products.visible.select { |p| 
-          # Include products that have reply_to_email set (non-nil and non-empty)
           p.reply_to_email.present?
         }.map do |product|
           { id: product.external_id, name: product.name, reply_to_email: product.reply_to_email }

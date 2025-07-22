@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# Products section
 class LinkPolicy < ApplicationPolicy
   def index?
     user.role_accountant_for?(seller) ||

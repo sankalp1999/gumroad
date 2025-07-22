@@ -75,18 +75,14 @@ const MainPage = (props: Props) => {
     purchasing_power_parity_excluded_product_ids: props.user.purchasing_power_parity_excluded_product_ids,
   });
   
-  // State for managing product-specific reply-to emails
   const [productReplyToGroups, setProductReplyToGroups] = React.useState<Array<{
     id: string;
     email: string;
     selectedProductIds: string[];
     isExpanded: boolean;
   }>>(() => {
-    
     if (props.user.products_with_custom_reply_to.length > 0) {
-      // Group products by their reply-to email
       const emailToProducts = new Map<string, string[]>();
-      
       props.user.products_with_custom_reply_to.forEach((product) => {
         const email = product.reply_to_email || "";
         if (!emailToProducts.has(email)) {
@@ -95,14 +91,12 @@ const MainPage = (props: Props) => {
         emailToProducts.get(email)!.push(product.id);
       });
       
-      // Create groups from the email mapping
       const groups = Array.from(emailToProducts.entries()).map(([email, productIds], index) => ({
         id: `initial-group-${index}`,
         email: email,
         selectedProductIds: productIds,
-        isExpanded: false // Start collapsed for existing groups
+        isExpanded: false
       }));
-      
       return groups;
     }
     return [];
@@ -115,7 +109,6 @@ const MainPage = (props: Props) => {
   const [isSaving, setIsSaving] = React.useState(false);
   const emailInputRef = React.useRef<HTMLInputElement>(null);
   
-  // Track validation errors for each group
   const [groupErrors, setGroupErrors] = React.useState<Record<string, string>>({});
 
   const resendConfirmationEmail = async () => {
@@ -149,21 +142,17 @@ const MainPage = (props: Props) => {
       return;
     }
 
-    // Validate product groups
     const newGroupErrors: Record<string, string> = {};
     let hasErrors = false;
-    
     productReplyToGroups.forEach(group => {
       if (group.selectedProductIds.length > 0 && !group.email) {
         newGroupErrors[group.id] = "Please enter an email address for selected products";
         hasErrors = true;
       }
     });
-    
     setGroupErrors(newGroupErrors);
     
     if (hasErrors) {
-      // Auto-expand groups with errors
       setProductReplyToGroups(groups => 
         groups.map(g => ({
           ...g,
@@ -177,10 +166,8 @@ const MainPage = (props: Props) => {
     setIsSaving(true);
 
     try {
-      // Prepare product reply-to data from groups
       const productReplyToEmails: Record<string, string> = {};
       const productReplyToIds: string[] = [];
-      
       productReplyToGroups.forEach(group => {
         group.selectedProductIds.forEach(productId => {
           productReplyToEmails[productId] = group.email;
@@ -439,7 +426,6 @@ const MainPage = (props: Props) => {
                           if (productNames.length === 1) return productNames[0];
                           if (productNames.length === 2) return productNames.join(" and ");
                           
-                          // For 3 or more products, show "Product1, Product2, and X more"
                           const displayNames = productNames.slice(0, 2);
                           const remainingCount = productNames.length - 2;
                           return `${displayNames.join(", ")} and ${remainingCount} more`;
@@ -497,7 +483,6 @@ const MainPage = (props: Props) => {
                         if (newGroups[index]) {
                           newGroups[index].email = e.target.value;
                           setProductReplyToGroups(newGroups);
-                          // Clear error when user types
                           if (groupErrors[group.id]) {
                             setGroupErrors(prev => {
                               const newErrors = { ...prev };
@@ -525,11 +510,9 @@ const MainPage = (props: Props) => {
                       tagIds={group.selectedProductIds}
                       tagList={props.user.products
                         .filter(product => {
-                          // Include product if it's already selected in this group
                           if (group.selectedProductIds.includes(product.id)) {
                             return true;
                           }
-                          // Exclude product if it's selected in any other group
                           const isSelectedElsewhere = productReplyToGroups.some((otherGroup, otherIndex) => 
                             otherIndex !== index && otherGroup.selectedProductIds.includes(product.id)
                           );
