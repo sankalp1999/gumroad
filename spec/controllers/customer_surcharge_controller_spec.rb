@@ -150,5 +150,28 @@ describe CustomerSurchargeController, :vcr do
         expect(response.parsed_body["vat_id_valid"]).to eq true
       end
     end
+
+    context "when original purchase had VAT-only refund with a VAT ID" do
+      it "uses VAT ID from refund to zero VAT in surcharge calculation" do
+        allow_any_instance_of(VatValidationService).to receive(:process).and_return(true)
+        setup_subscription_with_vat
+
+        @subscription.original_purchase.process!(off_session: false)
+        expect(@subscription.original_purchase.gumroad_tax_cents).to be > 0
+
+        @subscription.original_purchase.refund_gumroad_taxes!(
+          refunding_user_id: @user.id,
+          note: "Auto VAT",
+          business_vat_id: "IE6388047V"
+        )
+
+        post "calculate_all", params: { products: [
+          { permalink: @product.unique_permalink, price: 500, quantity: 1, subscription_id: @subscription.external_id }
+        ] }, as: :json
+
+        expect(response.parsed_body["tax_cents"]).to eq 0
+        expect(response.parsed_body["vat_id_valid"]).to eq true
+      end
+    end
   end
 end
