@@ -153,20 +153,19 @@ describe CustomerSurchargeController, :vcr do
 
     context "when original purchase had VAT-only refund with a VAT ID" do
       it "uses VAT ID from refund to zero VAT in surcharge calculation" do
-        allow_any_instance_of(VatValidationService).to receive(:process).and_return(true)
-        setup_subscription_with_vat
+        create(:zip_tax_rate, country: "FR", zip_code: nil, state: nil, combined_rate: 0.20, is_seller_responsible: false)
 
-        @subscription.original_purchase.process!(off_session: false)
-        expect(@subscription.original_purchase.gumroad_tax_cents).to be > 0
+        subscription = create(:subscription, user: @user, link: @product)
+        original = create(:purchase, is_original_subscription_purchase: true, link: @product, subscription: subscription, purchase_state: "successful")
+        original.create_purchase_sales_tax_info!(country_code: Compliance::Countries::FRA.alpha2, ip_address: "2.16.255.255", postal_code: "75001")
+        original.update!(gumroad_tax_cents: 100)
 
-        @subscription.original_purchase.refund_gumroad_taxes!(
-          refunding_user_id: @user.id,
-          note: "Auto VAT",
-          business_vat_id: "IE6388047V"
-        )
+        refund = create(:refund, purchase: original, link_id: @product.id, seller_id: @product.user_id, amount_cents: 0, gumroad_tax_cents: 100)
+        refund.business_vat_id = "IE6388047V"
+        refund.save!
 
         post "calculate_all", params: { products: [
-          { permalink: @product.unique_permalink, price: 500, quantity: 1, subscription_id: @subscription.external_id }
+          { permalink: @product.unique_permalink, price: 500, quantity: 1, subscription_id: subscription.external_id }
         ] }, as: :json
 
         expect(response.parsed_body["tax_cents"]).to eq 0
