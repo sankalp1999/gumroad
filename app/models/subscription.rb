@@ -866,9 +866,18 @@ class Subscription < ApplicationRecord
   end
 
   def effective_business_vat_id
-    return original_purchase.purchase_sales_tax_info.business_vat_id if original_purchase&.purchase_sales_tax_info&.business_vat_id.present?
-    refund = original_purchase&.refunds&.where("gumroad_tax_cents > 0")&.where("amount_cents = 0")&.order(:id)&.first
-    refund&.business_vat_id
+    @effective_business_vat_id ||= begin
+      return original_purchase.purchase_sales_tax_info.business_vat_id if original_purchase&.purchase_sales_tax_info&.business_vat_id.present?
+      
+      # Get the most recent VAT-only refund with a VAT ID
+      refund = original_purchase&.refunds
+        &.where("gumroad_tax_cents > 0 AND amount_cents = 0")
+        &.where.not(business_vat_id: [nil, ''])
+        &.order(id: :desc)
+        &.first
+      
+      refund&.business_vat_id
+    end
   end
 
   def gift?
