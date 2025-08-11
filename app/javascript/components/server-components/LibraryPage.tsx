@@ -263,7 +263,8 @@ const LibraryPage = ({ results, creators, bundles, reviews_page_enabled, followi
   const isDesktop = useIsAboveBreakpoint("lg");
   const [mobileFiltersExpanded, setMobileFiltersExpanded] = React.useState(false);
   const [showingAllCreators, setShowingAllCreators] = React.useState(false);
-  const hasArchivedProducts = results.some((result) => result.purchase.is_archived);
+  const hasArchivedProducts = state.results.some((result) => result.purchase.is_archived);
+  const archivedCount = state.results.filter((result) => result.purchase.is_archived).length;
   const showArchivedNotice = !state.search.showArchivedOnly && !results.some((result) => !result.purchase.is_archived);
   const hasParams =
     state.search.showArchivedOnly || state.search.query || state.search.creators.length || state.search.bundles.length;
@@ -342,6 +343,20 @@ const LibraryPage = ({ results, creators, bundles, reviews_page_enabled, followi
                 </Button>
               </>
             )}
+          </div>
+        ) : null}
+        {archivedCount > 0 && !state.search.showArchivedOnly && !showArchivedNotice ? (
+          <div className="bg-gray-100 border-gray-300 mb-5 rounded border p-3 text-center">
+            You have {archivedCount} archived purchase{archivedCount === 1 ? "" : "s"}-{" "}
+            <button
+              className="link"
+              onClick={(e) => {
+                e.preventDefault();
+                dispatch({ type: "update-search", search: { showArchivedOnly: true } });
+              }}
+            >
+              click here to view
+            </button>
           </div>
         ) : null}
         <div className="with-sidebar">
